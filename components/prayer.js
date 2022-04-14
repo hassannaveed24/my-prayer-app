@@ -19,12 +19,12 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Location from 'expo-location';
 import { getPrayerTimings } from './function';
-import Maps from './maps';
+import Maps from './Maps';
 import { useMutation, useQuery } from 'react-query';
 import axios from 'axios';
 import { GOOGLE_API_KEY, RADIUS } from '@env';
 
-export default function prayer({ navigation }) {
+export default function Prayer({ navigation }) {
     const [location, setLocation] = useState(null);
     const [errorMsg, setErrorMsg] = useState(null);
     const [displayCurrentAddress, setDisplayCurrentAddress] = useState('Wait, we are fetching you location...');
@@ -59,7 +59,7 @@ export default function prayer({ navigation }) {
 
         const location = await Location.getCurrentPositionAsync({});
 
-        if (location.hasOwnProperty('mocked') && location.mocked) throw new Error('Please turn off mock location');
+        // if (location.hasOwnProperty('mocked') && location.mocked) throw new Error('Please turn off mock location');
 
         return {
             latitude: location.coords?.latitude,
