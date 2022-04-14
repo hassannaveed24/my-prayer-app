@@ -110,11 +110,11 @@ export default function prayer({ navigation }) {
         setIsLoading(true);
         const coords = await getCurrentLocation();
 
-        // radius: RADIUS,
         getNearbyMosquesMutation.mutate({
             location: `${coords.latitude},${coords.longitude}`,
             type: 'mosque',
             key: GOOGLE_API_KEY,
+            radius: RADIUS,
         });
     };
 
