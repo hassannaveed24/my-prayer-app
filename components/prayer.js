@@ -41,7 +41,7 @@ export default function Prayer({ navigation }) {
           longitude,
         });
         for (let item of response) {
-          let address = `${item.name}, ${item.street}, ${item.postalCode}, ${item.city}`;
+          const address = `${item.name}, ${item.street}, ${item.postalCode}, ${item.city}`;
           setDisplayCurrentAddress(address);
         }
       }

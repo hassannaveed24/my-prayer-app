@@ -25,15 +25,15 @@ export default function Maps({ navigation }) {
     },
     {
       onSuccess: res => {
-        let newMarkerList = [];
-        res.data.results.map(marker => {
+        const newMarkerList = res.data.results.map(marker => {
           const { lat, lng } = marker.geometry.location;
-          newMarkerList.push({
+          return {
             coordinate: { latitude: lat, longitude: lng },
             title: marker?.name,
             image: marker?.icon,
-          });
+          };
         });
+
         setMarkerList(newMarkerList);
         setIsLoading(false);
       },
@@ -77,11 +77,12 @@ export default function Maps({ navigation }) {
         <MapView
           style={{ height: '100%', width: '100%' }}
           provider={PROVIDER_GOOGLE}
-          showsUserLocation={true}
+          showsUserLocation
           initialRegion={region}
           onRegionChangeComplete={setRegion}
-          // onRegionChange={setRegion}
-        >
+          followsUserLocation
+          showsMyLocationButton
+          loadingEnabled>
           {markerList?.map((marker, index) => {
             return (
               <Marker
