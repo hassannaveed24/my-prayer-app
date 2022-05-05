@@ -15,12 +15,12 @@ import * as Location from 'expo-location';
 import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 import axios from 'axios';
 import { useMutation, useQuery } from 'react-query';
-
+import _ from 'lodash';
 import theme from '../../constants/theme';
-import ScreenWrapper from '../../components/screenWrapper/ScreenWrapper';
 import { GOOGLE_API_KEY, RADIUS } from '@env';
+import { Formik } from 'formik';
 
-const SelectMasjidModal = ({ selectMasjidModalVisible, setSelectMasjidModalVisible }) => {
+const SelectMasjidModal = ({ selectMasjidModalVisible, setSelectMasjidModalVisible, formik }) => {
   const [region, setRegion] = useState({
     latitude: 1,
     longitude: 1,
@@ -28,32 +28,6 @@ const SelectMasjidModal = ({ selectMasjidModalVisible, setSelectMasjidModalVisib
     longitudeDelta: 0.0421,
   });
   const [markerList, setMarkerList] = useState([]);
-  // const getNearbyMosquesMutation = useMutation(
-  //   params => {
-  //     return axios.get('https://maps.googleapis.com/maps/api/place/nearbysearch/json?', {
-  //       params,
-  //       // headers: { Authorization: `Bearer ${}` },
-  //     });
-  //   },
-  //   {
-  //     onSuccess: res => {
-  //       const newMarkerList = res.data.results.map(marker => {
-  //         const { lat, lng } = marker.geometry.location;
-  //         return {
-  //           coordinate: { latitude: lat, longitude: lng },
-  //           title: marker?.name,
-  //           image: marker?.icon,
-  //         };
-  //       });
-
-  //       setMarkerList(newMarkerList);
-  //     },
-  //     onError: e => {
-  //       console.log(e?.message);
-  //       ToastAndroid.show(e?.message, ToastAndroid.SHORT);
-  //     },
-  //   },
-  // );
   const masjidQuery = useQuery(
     ['masjid', region.latitude, region.longitude],
     () => {
@@ -87,11 +61,11 @@ const SelectMasjidModal = ({ selectMasjidModalVisible, setSelectMasjidModalVisib
   );
   useEffect(() => {
     async function gettingCoords() {
-      let { status } = await Location.requestForegroundPermissionsAsync();
+      const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         ToastAndroid.show('Permission to access location was denied', ToastAndroid.LONG);
       }
-      let { coords } = await Location.getCurrentPositionAsync({});
+      const { coords } = await Location.getCurrentPositionAsync({});
       const { latitude, longitude } = coords;
       setRegion(prev => ({ ...prev, latitude, longitude }));
       // getNearbyMosquesMutation.mutate({
@@ -135,35 +109,24 @@ const SelectMasjidModal = ({ selectMasjidModalVisible, setSelectMasjidModalVisib
                   key={index}
                   {...marker}
                   onPress={() =>
-                    Alert.alert('Go To Masjid', `Are you sure you want to go to ${marker.title}?`, [
-                      {
-                        text: 'No',
-                        onPress: () => console.log('Cancel Pressed'),
-                        style: 'cancel',
-                      },
-                      {
-                        text: 'Yes',
-                        onPress: () => {
-                          const url = Platform.select({
-                            ios:
-                              'maps:' +
-                              marker.coordinate.latitude +
-                              ',' +
-                              marker.coordinate.longitude +
-                              '?q=' +
-                              marker.title,
-                            android:
-                              'geo:' +
-                              marker.coordinate.latitude +
-                              ',' +
-                              marker.coordinate.longitude +
-                              '?q=' +
-                              marker.title,
-                          });
-                          Linking.openURL(url);
+                    Alert.alert(
+                      'Select Masjid',
+                      `Are you sure you want to select ${marker.title}?`,
+                      [
+                        {
+                          text: 'No',
+                          onPress: () => console.log('Cancel Pressed'),
+                          style: 'cancel',
                         },
-                      },
-                    ])
+                        {
+                          text: 'Yes',
+                          onPress: () => {
+                            formik.setFieldValue('masjid', _.pick(marker, ['coordinate', 'title']));
+                            setSelectMasjidModalVisible(false);
+                          },
+                        },
+                      ],
+                    )
                   }
                 />
               );

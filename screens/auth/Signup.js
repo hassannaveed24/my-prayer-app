@@ -7,15 +7,35 @@ import {
   TextInput,
   TouchableWithoutFeedback,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import PhoneInput from 'react-native-phone-number-input';
 import { useFormik } from 'formik';
 import Icon from 'react-native-vector-icons/Ionicons';
+import firebase from 'firebase';
 
 import ScreenWrapper from '../../components/screenWrapper/ScreenWrapper';
 import theme from '../../constants/theme';
 import { useMutation } from 'react-query';
 import SelectMasjidModal from './SelectMasjidModal';
+require('firebase/firestore');
+
+const signup = payload => {
+  return new Promise((resolve, reject) => {
+    firebase
+      .auth()
+      .createUserWithEmailAndPassword(payload.email, payload.password)
+      .then(result => {
+        resolve(result);
+        // console.log(result);
+      })
+      .catch(err => {
+        reject(err);
+        // ToastAndroid.show(err.message, ToastAndroid.SHORT);
+      });
+  });
+};
+
 const Signup = () => {
   // const phoneSelectRef = useRef();
   const [isPasswordHide, setIsPasswordHide] = useState(true);
@@ -23,19 +43,15 @@ const Signup = () => {
   const [selectMasjidModalVisible, setSelectMasjidModalVisible] = useState(false);
 
   const mutation = useMutation(
-    async payload => {
-      // return axios.post(process.env.BASE_URL + '/employees/login', payload);
-    },
+    signup,
     {
       onSuccess: res => {
-        // if (res.data.isPasswordSet === true) {
-        //   setNavigation({ ...navigation, navigation: 'main', data: res.data });
-        // } else {
-        //   setPasswordModalVisible(true);
-        //   setNavigation({ ...navigation, data: res.data });
-        // }
+        console.log(res);
       },
       onError: err => {
+        console.log(err);
+        ToastAndroid.show(err.message, ToastAndroid.SHORT);
+
         // showToast(err.response.data.data || err);
         // setNavigation({ navigation: 'login', data: {} });
       },
@@ -44,39 +60,23 @@ const Signup = () => {
   );
 
   const formik = useFormik({
-    initialValues: { email: '', password: '', name: '' },
+    initialValues: { name: '', email: '', password: '', masjid: '' },
     onSubmit: async values => {
-      // auth()
-      //   .signInWithPhoneNumber('+' + phoneSelectRef.current.getCallingCode() + values.phoneNumber)
-      //   .then(confirmation => {
-      //     context.setConfirmation(confirmation);
-      //     navigation.navigate('OtpInput');
-      //   })
-      //   .catch(err => {
-      //     ToastAndroid.show(err, ToastAndroid.LONG);
-      //   });
+      mutation.mutate(values);
     },
   });
   const passwordInputRef = useRef();
 
   return (
     <ScreenWrapper>
-      {/* <Text style={styles.headingText}>Enter your number</Text> */}
-      {/* <PhoneInput
-        ref={r => {
-          phoneSelectRef.current = r;
-        }}
-        // placeholder="345678901"
-        DefaultValue={formik.values.phoneNumber}
-        value={formik.values.phoneNumber}
-        defaultCode="PK"
-        style={styles.phoneInput}
-        containerStyle={styles.phoneInputContainer}
-        textContainerStyle={styles.phoneInputTextContainer}
-        codeTextStyle={styles.phoneInputCodeText}
-        textInputStyle={styles.phoneInputTextInput}
-      /> */}
-      <View>
+      <View style={styles.container}>
+        {/* Title */}
+        <View style={styles.title1View}>
+          <Text style={styles.title1}>Imam</Text>
+        </View>
+
+        {/* NAME */}
+
         <View style={styles.inputView}>
           <TextInput
             style={styles.textInput}
@@ -94,8 +94,9 @@ const Signup = () => {
             // onSubmitEditing={() => passwordInputRef.current.focus()}
           />
         </View>
-      </View>
-      <View>
+
+        {/* Email */}
+
         <View style={styles.inputView}>
           <TextInput
             style={styles.textInput}
@@ -113,8 +114,9 @@ const Signup = () => {
             onSubmitEditing={() => passwordInputRef.current.focus()}
           />
         </View>
-      </View>
-      <View>
+
+        {/* Password */}
+
         <View style={styles.inputView}>
           <TextInput
             style={styles.textInput}
@@ -144,28 +146,34 @@ const Signup = () => {
             </View>
           </TouchableWithoutFeedback>
         </View>
-      </View>
 
-      {/* Select Masjid Button */}
-      <TouchableWithoutFeedback
-        onPress={() => {
-          setSelectMasjidModalVisible(true);
-        }}>
-        <View style={styles.signupButtonView}>
-          <Text style={styles.signupButtonText}>select masjid</Text>
+        {/* Select Masjid Button */}
+        <TouchableWithoutFeedback
+          onPress={() => {
+            setSelectMasjidModalVisible(true);
+          }}>
+          <View style={styles.selectMasjidButtonView}>
+            <Text style={styles.signupButtonText}>select masjid</Text>
+          </View>
+        </TouchableWithoutFeedback>
+        <SelectMasjidModal
+          selectMasjidModalVisible={selectMasjidModalVisible}
+          setSelectMasjidModalVisible={setSelectMasjidModalVisible}
+          formik={formik}
+        />
+        <View style={styles.masjidView}>
+          <Text style={styles.title2}>
+            {formik.values.masjid?.title && ` ${formik.values.masjid.title}`}
+          </Text>
         </View>
-      </TouchableWithoutFeedback>
-      <SelectMasjidModal
-        selectMasjidModalVisible={selectMasjidModalVisible}
-        setSelectMasjidModalVisible={setSelectMasjidModalVisible}
-      />
+      </View>
       {/* Signup Button */}
       <TouchableWithoutFeedback
         onPress={() => {
           formik.handleSubmit();
         }}>
         <View style={styles.signupButtonView}>
-          {mutation.isLoading || loading ? (
+          {mutation.isLoading ? (
             <ActivityIndicator />
           ) : (
             <Text style={styles.signupButtonText}>Signup</Text>
@@ -189,13 +197,14 @@ const styles = StyleSheet.create({
   },
 
   inputView: {
-    backgroundColor: 'aqua',
+    backgroundColor: 'white',
     height: 56,
     width: '100%',
     borderStyle: 'solid',
     borderWidth: 1,
     borderColor: theme.border,
     borderRadius: theme.borderRadius,
+    marginBottom: 20,
     // marginBottom: 20,
     // display: 'flex',
     // flexDirection: 'row',
@@ -219,7 +228,38 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   passwordIcon: { position: 'absolute', right: 15 },
+  masjidView: {},
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+
+    minHeight: Dimensions.get('screen').height - 170,
+
+    // backgroundColor: 'white',
+  },
+  title1View: {
+    // backgroundColor: 'orange',
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    maxHeight: 40,
+    marginBottom: 20,
+  },
+  title1: {
+    fontSize: 23,
+    fontWeight: '700',
+    color: theme.title,
+    textTransform: 'uppercase',
+  },
+  title2: {
+    fontSize: 16,
+    fontWeight: '300',
+    color: theme.title,
+    textTransform: 'uppercase',
+  },
   signupButtonView: {
+    maxHeight: 40,
     height: 40,
     width: '100%',
     backgroundColor: theme.button,
@@ -227,6 +267,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: theme.borderRadius,
+    position: 'absolute',
+    bottom: 100,
+    // top: 230,
+  },
+  selectMasjidButtonView: {
+    maxHeight: 40,
+    width: '100%',
+    backgroundColor: theme.button,
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: theme.borderRadius,
+    marginBottom: 20,
   },
   signupButtonText: {
     textTransform: 'uppercase',
