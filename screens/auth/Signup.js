@@ -18,6 +18,7 @@ import ScreenWrapper from '../../components/screenWrapper/ScreenWrapper';
 import theme from '../../constants/theme';
 import { useMutation } from 'react-query';
 import SelectMasjidModal from './SelectMasjidModal';
+import { useSelector } from 'react-redux';
 require('firebase/firestore');
 
 const signup = payload => {
@@ -26,7 +27,21 @@ const signup = payload => {
       .auth()
       .createUserWithEmailAndPassword(payload.email, payload.password)
       .then(result => {
-        resolve(result);
+        firebase
+          .firestore()
+          .collection('users')
+          .doc(firebase.auth().currentUser.uid)
+          .set({
+            name: payload.name,
+            email: payload.email,
+            masjid: payload.masjid,
+          })
+          .then(result => {
+            resolve(result);
+          })
+          .catch(err => {
+            reject(err);
+          });
         // console.log(result);
       })
       .catch(err => {
@@ -37,7 +52,7 @@ const signup = payload => {
 };
 
 const Signup = () => {
-  // const phoneSelectRef = useRef();
+  const loggedinUser = useSelector(store => store.auth.user);
   const [isPasswordHide, setIsPasswordHide] = useState(true);
   const [loading, setLoading] = useState(false);
   const [selectMasjidModalVisible, setSelectMasjidModalVisible] = useState(false);
@@ -51,9 +66,6 @@ const Signup = () => {
       onError: err => {
         console.log(err);
         ToastAndroid.show(err.message, ToastAndroid.SHORT);
-
-        // showToast(err.response.data.data || err);
-        // setNavigation({ navigation: 'login', data: {} });
       },
     },
     { retry: false },

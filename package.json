@@ -20,7 +20,7 @@
     "firebase": "8.2.3",
     "formik": "^2.2.9",
     "lodash": "^4.17.21",
-    "prop-types": "16.0.0",
+    "prop-types": "15.8.1",
     "react": "*",
     "react-dom": "16.13.1",
     "react-native": "0.63.4",
@@ -34,7 +34,9 @@
     "react-native-screens": "~3.0.0",
     "react-native-vector-icons": "^9.1.0",
     "react-native-web": "~0.13.12",
-    "react-query": "^3.34.19"
+    "react-query": "^3.34.19",
+    "react-redux": "^8.0.1",
+    "redux": "^4.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.9.0",

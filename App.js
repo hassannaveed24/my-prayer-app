@@ -7,6 +7,7 @@ import Maps from './components/Maps';
 import { QueryClientProvider, QueryClient } from 'react-query';
 import theme from './constants/theme';
 import Signup from './screens/auth/Signup';
+import Main from './screens/Main';
 import * as firebase from 'firebase';
 import {
   FIREBASE_API_KEY,
@@ -17,6 +18,9 @@ import {
   FIREBASE_APP_ID,
   FIREBASE_MEASUREMENT_ID,
 } from '@env';
+
+import { Provider } from 'react-redux';
+import store from './store';
 
 const firebaseConfig = {
   apiKey: FIREBASE_API_KEY,
@@ -39,26 +43,28 @@ const Drawer = createDrawerNavigator();
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <NavigationContainer>
-        <Drawer.Navigator
-          initialRouteName="Signup"
-          screenOptions={{
-            drawerActiveBackgroundColor: theme.title,
-            drawerContentContainerStyle: styles.container,
-          }}>
-          <Drawer.Screen name="Home" component={Prayer} />
-          <Drawer.Screen name="Maps" component={Maps} />
-          <Drawer.Screen
-            name="Signup"
-            component={Signup}
-            options={{
-              drawerItemStyle: styles.signupItem,
-            }}
-          />
-        </Drawer.Navigator>
-      </NavigationContainer>
-    </QueryClientProvider>
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <NavigationContainer>
+          <Drawer.Navigator
+            initialRouteName="Signup"
+            screenOptions={{
+              drawerActiveBackgroundColor: theme.title,
+              drawerContentContainerStyle: styles.container,
+            }}>
+            <Drawer.Screen name="Home" component={Prayer} />
+            <Drawer.Screen name="Maps" component={Maps} />
+            <Drawer.Screen
+              name="Signup"
+              component={Signup}
+              options={{
+                drawerItemStyle: styles.signupItem,
+              }}
+            />
+          </Drawer.Navigator>
+        </NavigationContainer>
+      </QueryClientProvider>
+    </Provider>
   );
 }
 const styles = StyleSheet.create({
