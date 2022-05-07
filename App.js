@@ -5,6 +5,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import Prayer from './components/Prayer';
 import Maps from './components/Maps';
 import { QueryClientProvider, QueryClient } from 'react-query';
+// import 'react-native-gesture-handler';
 import theme from './constants/theme';
 import Signup from './screens/auth/Signup';
 import Main from './screens/Main';
