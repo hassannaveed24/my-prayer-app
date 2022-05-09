@@ -9,50 +9,57 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
-import PhoneInput from 'react-native-phone-number-input';
 import { useFormik } from 'formik';
 import Icon from 'react-native-vector-icons/Ionicons';
-import firebase from 'firebase';
 
 import ScreenWrapper from '../../components/screenWrapper/ScreenWrapper';
 import theme from '../../constants/theme';
 import { useMutation } from 'react-query';
 import SelectMasjidModal from './SelectMasjidModal';
-import { useSelector } from 'react-redux';
-require('firebase/firestore');
+// import { useSelector } from 'react-redux';
+// import {
+//   getAuth,
+//   signInWithEmailAndPassword,
+//   signOut,
+//   onAuthStateChanged,
+//   createUserWithEmailAndPassword,
+// } from 'firebase/auth';
 
 const signup = payload => {
   return new Promise((resolve, reject) => {
-    firebase
-      .auth()
-      .createUserWithEmailAndPassword(payload.email, payload.password)
-      .then(result => {
-        firebase
-          .firestore()
-          .collection('users')
-          .doc(firebase.auth().currentUser.uid)
-          .set({
-            name: payload.name,
-            email: payload.email,
-            masjid: payload.masjid,
-          })
-          .then(result => {
-            resolve(result);
-          })
-          .catch(err => {
-            reject(err);
-          });
-        // console.log(result);
-      })
-      .catch(err => {
-        reject(err);
-        // ToastAndroid.show(err.message, ToastAndroid.SHORT);
-      });
+    // let auth = getAuth();
+    // createUserWithEmailAndPassword(auth, payload.email, payload.password)
+    //   .then(response => resolve(response))
+    //   .catch(err => reject(err));
+    // firebase
+    //   .auth()
+    //   .createUserWithEmailAndPassword(payload.email, payload.password)
+    //   .then(result => {
+    //     firebase
+    //       .firestore()
+    //       .collection('users')
+    //       .doc(firebase.auth().currentUser.uid)
+    //       .set({
+    //         name: payload.name,
+    //         email: payload.email,
+    //         masjid: payload.masjid,
+    //       })
+    //       .then(result => {
+    //         console.log(result);
+    //         resolve(result);
+    //       })
+    //       .catch(err => {
+    //         reject(err);
+    //       });
+    //   })
+    //   .catch(err => {
+    //     reject(err);
+    //   });
   });
 };
 
 const Signup = () => {
-  const loggedinUser = useSelector(store => store.auth.user);
+  // const loggedinUser = useSelector(store => store.auth.user);
   const [isPasswordHide, setIsPasswordHide] = useState(true);
   const [loading, setLoading] = useState(false);
   const [selectMasjidModalVisible, setSelectMasjidModalVisible] = useState(false);
@@ -61,9 +68,12 @@ const Signup = () => {
     signup,
     {
       onSuccess: res => {
+        console.log('success');
         console.log(res);
       },
       onError: err => {
+        console.log('error');
+
         console.log(err);
         ToastAndroid.show(err.message, ToastAndroid.SHORT);
       },

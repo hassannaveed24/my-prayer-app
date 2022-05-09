@@ -1,16 +1,24 @@
-// import * as firebase from 'firebase';
+import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+import {
+  FIREBASE_API_KEY,
+  FIREBASE_AUTH_DOMAIN,
+  FIREBASE_PROJECT_ID,
+  FIREBASE_STORAGE_BUCKET,
+  FIREBASE_MESSAGING_SENDER_ID,
+  FIREBASE_APP_ID,
+  FIREBASE_MEASUREMENT_ID,
+} from '@env';
+const firebaseConfig = {
+  apiKey: FIREBASE_API_KEY,
+  authDomain: FIREBASE_AUTH_DOMAIN,
+  //   databaseURL: 'https://reactnativefirebase-00000.firebaseio.com',
+  projectId: FIREBASE_PROJECT_ID,
+  storageBucket: FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: FIREBASE_MESSAGING_SENDER_ID,
+  appId: FIREBASE_APP_ID,
+  measurementId: FIREBASE_MEASUREMENT_ID,
+};
 
-// const firebaseConfig = {
-//   apiKey: 'AIzaSyDaCXHxOOI-_aHwFZOluy4px0g4-3YeDKc',
-//   authDomain: 'prayerapp-33b9b.firebaseapp.com',
-//   //   databaseURL: 'https://reactnativefirebase-00000.firebaseio.com',
-//   projectId: 'prayerapp-33b9b',
-//   storageBucket: 'prayerapp-33b9b.appspot.com',
-//   messagingSenderId: '624156521324',
-//   appId: '1:624156521324:web:4b8f939327347d14f1b949',
-//   measurementId: 'G-W123KTD94C',
-// };
-
-// if (firebase.apps.length === 0) {
-//   firebase.initializeApp(firebaseConfig);
-// }
+export const app = initializeApp(firebaseConfig);
+export const database = getFirestore(app);
