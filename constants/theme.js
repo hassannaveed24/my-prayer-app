@@ -1,5 +1,5 @@
 export default {
-  background: '#008000',
+  background: 'rgba(0,128,0,0.4)',
   title: '#00bfff',
   placeholder: '#C7C7CD',
   danger: 'red',

@@ -1,0 +1,315 @@
+import React, { useRef, useState } from 'react';
+import {
+  StyleSheet,
+  View,
+  Dimensions,
+  Text,
+  TextInput,
+  ToastAndroid,
+  TouchableWithoutFeedback,
+  ActivityIndicator,
+  Button,
+} from 'react-native';
+import ScreenWrapper from '../../components/screenWrapper/ScreenWrapper';
+import theme from '../../constants/theme';
+import { useMutation } from 'react-query';
+import { useFormik } from 'formik';
+import Icon from 'react-native-vector-icons/AntDesign';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import dayjs from 'dayjs';
+
+const mutationFn = payload => {
+  return new Promise((resolve, reject) => {
+    // signInWithEmailAndPassword(authentication, payload.email, payload.password)
+    //   .then(userCredentials => {
+    //     resolve(userCredentials);
+    //   })
+    //   .catch(error => reject(error));
+  });
+};
+const PrayerTimings = () => {
+  const [isFajarDatePickerVisible, setIsFajarDatePickerVisible] = useState(false);
+  const [isDuharrDatePickerVisible, setIsDuharrDatePickerVisible] = useState(false);
+  const [isAsarDatePickerVisible, setIsAsarDatePickerVisible] = useState(false);
+  const [isMaghribDatePickerVisible, setIsMaghribDatePickerVisible] = useState(false);
+  const [isIshaDatePickerVisible, setIsIshaDatePickerVisible] = useState(false);
+  const [fajar, setFajar] = useState(null);
+  const [duhar, setDuhar] = useState(null);
+  const [asar, setAsar] = useState(null);
+  const [maghrib, setMaghrib] = useState(null);
+  const [isha, setIsha] = useState(null);
+
+  const mutation = useMutation(
+    mutationFn,
+    {
+      onSuccess: res => {
+        console.log('success');
+        console.log(res);
+      },
+      onError: err => {
+        console.log('error');
+        ToastAndroid.show(err.message || 'error', ToastAndroid.SHORT);
+      },
+    },
+    { retry: false },
+  );
+
+  // const formik = useFormik({
+  //   initialValues: { name: '', email: '', password: '', masjid: '' },
+  //   onSubmit: async values => {
+  //     mutation.mutate(values);
+  //   },
+  // });
+
+  return (
+    <>
+      <ScreenWrapper>
+        <View style={styles.container}>
+          {/* Title */}
+          <View style={styles.title1View}>
+            <Text style={styles.title1}>Prayer Times</Text>
+          </View>
+
+          {/* Fajar */}
+          <TouchableWithoutFeedback onPress={() => setIsFajarDatePickerVisible(true)}>
+            <View style={styles.inputView}>
+              <View>
+                <Text style={styles.times}>
+                  Fajar: {fajar ? dayjs(fajar).format('hh:mm A') : `?`}
+                </Text>
+              </View>
+              <View>
+                <Icon name="edit" size={32} color="white" />
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+          <DateTimePickerModal
+            isVisible={isFajarDatePickerVisible}
+            mode="time"
+            date={fajar ? fajar : new Date()}
+            onConfirm={date => {
+              setFajar(date);
+              setIsFajarDatePickerVisible(false);
+            }}
+            onCancel={() => setIsFajarDatePickerVisible(false)}
+          />
+          {/* DUHAR */}
+          <TouchableWithoutFeedback onPress={() => setIsDuharrDatePickerVisible(true)}>
+            <View style={styles.inputView}>
+              <View>
+                <Text style={styles.times}>
+                  DUHAR: {duhar ? dayjs(duhar).format('hh:mm A') : `?`}
+                </Text>
+              </View>
+              <View>
+                <Icon name="edit" size={32} color="white" />
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+          <DateTimePickerModal
+            isVisible={isDuharrDatePickerVisible}
+            mode="time"
+            date={duhar ? duhar : new Date()}
+            onConfirm={date => {
+              setDuhar(date);
+              setIsDuharrDatePickerVisible(false);
+            }}
+            onCancel={() => setIsDuharrDatePickerVisible(false)}
+          />
+          {/* ASAR */}
+          <TouchableWithoutFeedback onPress={() => setIsAsarDatePickerVisible(true)}>
+            <View style={styles.inputView}>
+              <View>
+                <Text style={styles.times}>ASAR: {asar ? dayjs(asar).format('hh:mm A') : `?`}</Text>
+              </View>
+              <View>
+                <Icon name="edit" size={32} color="white" />
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+          <DateTimePickerModal
+            isVisible={isAsarDatePickerVisible}
+            mode="time"
+            date={asar ? asar : new Date()}
+            onConfirm={date => {
+              setAsar(date);
+              setIsAsarDatePickerVisible(false);
+            }}
+            onCancel={() => setIsAsarDatePickerVisible(false)}
+          />
+          {/* MAGRIB */}
+          <TouchableWithoutFeedback onPress={() => setIsMaghribDatePickerVisible(true)}>
+            <View style={styles.inputView}>
+              <View>
+                <Text style={styles.times}>
+                  MAGRIB: {maghrib ? dayjs(maghrib).format('hh:mm A') : `?`}
+                </Text>
+              </View>
+              <View>
+                <Icon name="edit" size={32} color="white" />
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+          <DateTimePickerModal
+            isVisible={isMaghribDatePickerVisible}
+            mode="time"
+            date={maghrib ? maghrib : new Date()}
+            onConfirm={date => {
+              setMaghrib(date);
+              setIsMaghribDatePickerVisible(false);
+            }}
+            onCancel={() => setIsMaghribDatePickerVisible(false)}
+          />
+          {/* ISHA */}
+          <TouchableWithoutFeedback onPress={() => setIsIshaDatePickerVisible(true)}>
+            <View style={styles.inputView}>
+              <View>
+                <Text style={styles.times}>ISHA: {isha ? dayjs(isha).format('hh:mm A') : `?`}</Text>
+              </View>
+              <View>
+                <Icon name="edit" size={32} color="white" />
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+          <DateTimePickerModal
+            isVisible={isIshaDatePickerVisible}
+            mode="time"
+            date={isha ? isha : new Date()}
+            onConfirm={date => {
+              setIsha(date);
+              setIsIshaDatePickerVisible(false);
+            }}
+            onCancel={() => setIsIshaDatePickerVisible(false)}
+          />
+        </View>
+
+        {/* Update Button */}
+        <TouchableWithoutFeedback
+          onPress={() => {
+            // formik.handleSubmit();
+          }}>
+          <View style={styles.signupButtonView}>
+            {mutation.isLoading ? (
+              <ActivityIndicator />
+            ) : (
+              <Text style={styles.signupButtonText}>Update Timings</Text>
+            )}
+          </View>
+        </TouchableWithoutFeedback>
+      </ScreenWrapper>
+    </>
+  );
+};
+const styles = StyleSheet.create({
+  inputView: {
+    backgroundColor: theme.background,
+
+    height: 56,
+    maxHeight: 56,
+    width: '100%',
+    marginBottom: 20,
+    // borderStyle: 'solid',
+    // borderWidth: 1,
+    // borderColor: theme.border,
+    borderRadius: theme.borderRadius,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
+  },
+  times: {
+    fontSize: 20,
+    fontWeight: '700',
+    lineHeight: 30,
+    //margin:'2%',
+    color: 'white',
+    textTransform: 'uppercase',
+  },
+  setTimingsView: {
+    maxHeight: 40,
+    height: 40,
+    width: '100%',
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: theme.borderRadius,
+  },
+  textInput: {
+    fontStyle: 'normal',
+    fontWeight: 'normal',
+    fontSize: 16,
+    color: theme.inputText,
+    width: '100%',
+
+    height: '100%',
+  },
+  passwordIconView: {
+    position: 'absolute',
+    right: 0,
+    height: '100%',
+    width: 60,
+    display: 'flex',
+    justifyContent: 'center',
+  },
+  passwordIcon: { position: 'absolute', right: 15 },
+  masjidView: {},
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+
+    minHeight: Dimensions.get('screen').height - 170,
+
+    // backgroundColor: 'white',
+  },
+  title1View: {
+    // backgroundColor: 'orange',
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    maxHeight: 40,
+    marginBottom: 20,
+  },
+  title1: {
+    fontSize: 23,
+    fontWeight: '700',
+    color: theme.title,
+    textTransform: 'uppercase',
+  },
+  title2: {
+    fontSize: 16,
+    fontWeight: '300',
+    color: theme.title,
+    textTransform: 'uppercase',
+  },
+  signupButtonView: {
+    maxHeight: 40,
+    height: 40,
+    width: '100%',
+    backgroundColor: theme.button,
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: theme.borderRadius,
+    position: 'absolute',
+    bottom: 100,
+    // top: 230,
+  },
+  selectMasjidButtonView: {
+    maxHeight: 40,
+    width: '100%',
+    backgroundColor: theme.button,
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: theme.borderRadius,
+    marginBottom: 20,
+  },
+  signupButtonText: {
+    textTransform: 'uppercase',
+    color: theme.buttonText,
+  },
+});
+
+export default PrayerTimings;

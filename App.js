@@ -8,6 +8,8 @@ import { QueryClientProvider, QueryClient } from 'react-query';
 // import 'react-native-gesture-handler';
 import theme from './constants/theme';
 import Signup from './screens/auth/Signup';
+import Signin from './screens/auth/Signin';
+import PrayerTimings from './screens/prayerTimings/PrayerTimings';
 // import Main from './screens/Main';
 
 // import { Provider } from 'react-redux';
@@ -25,7 +27,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <NavigationContainer>
         <Drawer.Navigator
-          initialRouteName="Signup"
+          initialRouteName="Prayer Times"
           screenOptions={{
             drawerActiveBackgroundColor: theme.title,
             drawerContentContainerStyle: styles.container,
@@ -33,10 +35,24 @@ export default function App() {
           <Drawer.Screen name="Home" component={Prayer} />
           <Drawer.Screen name="Maps" component={Maps} />
           <Drawer.Screen
-            name="Signup"
+            name="Sign Up"
             component={Signup}
             options={{
               drawerItemStyle: styles.signupItem,
+            }}
+          />
+          <Drawer.Screen
+            name="Sign In"
+            component={Signin}
+            options={{
+              drawerItemStyle: styles.signinItem,
+            }}
+          />
+          <Drawer.Screen
+            name="Prayer Times"
+            component={PrayerTimings}
+            options={{
+              drawerItemStyle: styles.prayerTimesItem,
             }}
           />
         </Drawer.Navigator>
@@ -48,4 +64,6 @@ export default function App() {
 const styles = StyleSheet.create({
   signupItem: {},
   container: {},
+  signinItem: {},
+  prayerTimesItem: {},
 });

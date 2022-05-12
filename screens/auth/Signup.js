@@ -8,6 +8,7 @@ import {
   TouchableWithoutFeedback,
   ActivityIndicator,
   Dimensions,
+  Keyboard,
 } from 'react-native';
 import { useFormik } from 'formik';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -16,45 +17,28 @@ import ScreenWrapper from '../../components/screenWrapper/ScreenWrapper';
 import theme from '../../constants/theme';
 import { useMutation } from 'react-query';
 import SelectMasjidModal from './SelectMasjidModal';
+import { database, authentication } from '../../database/firebaseDB';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
 // import { useSelector } from 'react-redux';
-// import {
-//   getAuth,
-//   signInWithEmailAndPassword,
-//   signOut,
-//   onAuthStateChanged,
-//   createUserWithEmailAndPassword,
-// } from 'firebase/auth';
 
-const signup = payload => {
+const mutationFn = payload => {
   return new Promise((resolve, reject) => {
-    // let auth = getAuth();
-    // createUserWithEmailAndPassword(auth, payload.email, payload.password)
-    //   .then(response => resolve(response))
-    //   .catch(err => reject(err));
-    // firebase
-    //   .auth()
-    //   .createUserWithEmailAndPassword(payload.email, payload.password)
-    //   .then(result => {
-    //     firebase
-    //       .firestore()
-    //       .collection('users')
-    //       .doc(firebase.auth().currentUser.uid)
-    //       .set({
-    //         name: payload.name,
-    //         email: payload.email,
-    //         masjid: payload.masjid,
-    //       })
-    //       .then(result => {
-    //         console.log(result);
-    //         resolve(result);
-    //       })
-    //       .catch(err => {
-    //         reject(err);
-    //       });
-    //   })
-    //   .catch(err => {
-    //     reject(err);
-    //   });
+    createUserWithEmailAndPassword(authentication, payload.email, payload.password)
+      .then(userCredentials => {
+        setDoc(doc(database, 'users', userCredentials.user.uid), {
+          name: payload.name,
+          email: userCredentials.user.email,
+          masjid: payload.masjid,
+        })
+          .then(() => {
+            resolve();
+          })
+          .catch(err => reject(err));
+      })
+      .catch(err => {
+        reject(err);
+      });
   });
 };
 
@@ -65,16 +49,10 @@ const Signup = () => {
   const [selectMasjidModalVisible, setSelectMasjidModalVisible] = useState(false);
 
   const mutation = useMutation(
-    signup,
+    mutationFn,
     {
-      onSuccess: res => {
-        console.log('success');
-        console.log(res);
-      },
+      onSuccess: res => {},
       onError: err => {
-        console.log('error');
-
-        console.log(err);
         ToastAndroid.show(err.message, ToastAndroid.SHORT);
       },
     },
@@ -88,6 +66,7 @@ const Signup = () => {
     },
   });
   const passwordInputRef = useRef();
+  const emailInputRef = useRef();
 
   return (
     <ScreenWrapper>
@@ -113,7 +92,7 @@ const Signup = () => {
               formik.setFieldValue('name', text);
             }}
             value={formik.values.name}
-            // onSubmitEditing={() => passwordInputRef.current.focus()}
+            onSubmitEditing={() => emailInputRef.current.focus()}
           />
         </View>
 
@@ -134,6 +113,7 @@ const Signup = () => {
             }}
             value={formik.values.email}
             onSubmitEditing={() => passwordInputRef.current.focus()}
+            ref={ref => (emailInputRef.current = ref)}
           />
         </View>
 
@@ -149,13 +129,16 @@ const Signup = () => {
             autoCapitalize="none"
             secureTextEntry={isPasswordHide}
             autoCorrect={false}
-            returnKeyType="send"
+            returnKeyType="done"
             textContentType="newPassword"
             value={formik.values.password}
             onChangeText={text => {
               formik.setFieldValue('password', text);
             }}
-            onSubmitEditing={() => formik.handleSubmit()}
+            onSubmitEditing={() => {
+              // console.log('in end editing');
+              Keyboard.dismiss;
+            }}
           />
           <TouchableWithoutFeedback onPress={() => setIsPasswordHide(!isPasswordHide)}>
             <View style={styles.passwordIconView}>
@@ -198,7 +181,7 @@ const Signup = () => {
           {mutation.isLoading ? (
             <ActivityIndicator />
           ) : (
-            <Text style={styles.signupButtonText}>Signup</Text>
+            <Text style={styles.signupButtonText}>Sign up</Text>
           )}
         </View>
       </TouchableWithoutFeedback>

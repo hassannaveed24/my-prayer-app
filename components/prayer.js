@@ -11,6 +11,7 @@ import {
   ToastAndroid,
   Platform,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 import { getPrayerTimings } from './function';
 import { useMutation, useQuery } from 'react-query';
@@ -18,6 +19,19 @@ import axios from 'axios';
 import { GOOGLE_API_KEY, RADIUS } from '@env';
 import backgroundImage from '../assets/images/masjid.jpg';
 import theme from '../constants/theme';
+import { signOut } from 'firebase/auth';
+import { authentication } from '../database/firebaseDB';
+const signOutMutationFn = payload => {
+  return new Promise((resolve, reject) => {
+    signOut(authentication)
+      .then(() => {
+        resolve();
+      })
+      .catch(err => {
+        reject(err);
+      });
+  });
+};
 
 export default function Prayer({ navigation }) {
   const [location, setLocation] = useState(null);
@@ -115,13 +129,36 @@ export default function Prayer({ navigation }) {
     });
   };
 
+  const signOutMutation = useMutation(
+    signOutMutationFn,
+    {
+      onSuccess: () => {
+        ToastAndroid.show('Successfully signed out!', ToastAndroid.SHORT);
+      },
+      onError: err => {
+        console.log('error');
+        ToastAndroid.show(err.message, ToastAndroid.SHORT);
+      },
+    },
+    { retry: false },
+  );
+  const handleSignOut = () => {
+    if (signOutMutation.isLoading) {
+      return;
+    }
+    signOutMutation.mutate();
+  };
   ///////////////////////////////////////////////////////////////
 
   return (
     <>
       <View style={styles.container}>
         <ImageBackground source={backgroundImage} style={styles.image} />
-
+        <TouchableWithoutFeedback onPress={handleSignOut}>
+          <View style={styles.logoutIconView}>
+            <Icon name="log-out-outline" size={40} color={theme.placeholder} />
+          </View>
+        </TouchableWithoutFeedback>
         <View style={styles.Titles}>
           <Text style={styles.title}>PRAYERS TIMINGS</Text>
 
@@ -140,7 +177,11 @@ export default function Prayer({ navigation }) {
           )}
         </View>
         <View style={styles.spinnerView}>
-          {isLoading ? <ActivityIndicator size="large" color="white" /> : <></>}
+          {isLoading || signOutMutation.isLoading ? (
+            <ActivityIndicator size="large" color="white" />
+          ) : (
+            <></>
+          )}
         </View>
 
         <TouchableWithoutFeedback
@@ -172,6 +213,18 @@ const styles = StyleSheet.create({
     backgroundColor: theme.background,
     //alignItems: 'center',
     //justifyContent:'center',
+  },
+  logoutIconView: {
+    // backgroundColor: theme.background,
+    position: 'absolute',
+
+    right: 15,
+    top: 15,
+    minHeight: 50,
+    minWidth: 50,
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   Titles: {
     margin: '20%',
@@ -251,6 +304,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 30,
     //margin:'2%',
-    color: '#00bfff',
+    color: 'white',
   },
 });

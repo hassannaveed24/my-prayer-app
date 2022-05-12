@@ -49,6 +49,7 @@ const SelectMasjidModal = ({ selectMasjidModalVisible, setSelectMasjidModalVisib
             coordinate: { latitude: lat, longitude: lng },
             title: marker?.name,
             image: marker?.icon,
+            place_id: marker.place_id,
           };
         });
         setMarkerList(prev => [...new Set([...newMarkerList, ...prev])]);
@@ -121,7 +122,10 @@ const SelectMasjidModal = ({ selectMasjidModalVisible, setSelectMasjidModalVisib
                         {
                           text: 'Yes',
                           onPress: () => {
-                            formik.setFieldValue('masjid', _.pick(marker, ['coordinate', 'title']));
+                            formik.setFieldValue(
+                              'masjid',
+                              _.pick(marker, ['coordinate', 'title', 'place_id']),
+                            );
                             setSelectMasjidModalVisible(false);
                           },
                         },
