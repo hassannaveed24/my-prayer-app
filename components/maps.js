@@ -90,8 +90,7 @@ export default function Maps({ navigation }) {
         region={region}
         onRegionChangeComplete={setRegion}
         followsUserLocation
-        showsMyLocationButton
-        loadingEnabled>
+        showsMyLocationButton>
         {markerList?.map((marker, index) => {
           return (
             <Marker

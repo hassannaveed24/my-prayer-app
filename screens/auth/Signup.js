@@ -19,26 +19,50 @@ import { useMutation } from 'react-query';
 import SelectMasjidModal from './SelectMasjidModal';
 import { database, authentication } from '../../database/firebaseDB';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
+import { addDoc, collection, doc, runTransaction, setDoc } from 'firebase/firestore';
 // import { useSelector } from 'react-redux';
 
 const mutationFn = payload => {
   return new Promise((resolve, reject) => {
     createUserWithEmailAndPassword(authentication, payload.email, payload.password)
       .then(userCredentials => {
-        setDoc(doc(database, 'users', userCredentials.user.uid), {
-          name: payload.name,
-          email: userCredentials.user.email,
-          masjid: payload.masjid,
-        })
-          .then(() => {
-            resolve();
+        Promise.all([
+          setDoc(doc(database, 'users', userCredentials.user.uid), {
+            name: payload.name,
+            email: userCredentials.user.email,
+            masjid: payload.masjid.place_id,
           })
-          .catch(err => reject(err));
+            .then(() => {
+              resolve();
+            })
+            .catch(err => reject(err)),
+          setDoc(doc(database, 'masjids', payload.masjid.place_id), {
+            ...payload.masjid,
+            imam: userCredentials.user.uid,
+          })
+            .then(() => {
+              resolve();
+            })
+            .catch(err => reject(err)),
+        ]);
+
+        //   setDoc(doc(database, 'users', userCredentials.user.uid), {
+        //     name: payload.name,
+        //     email: userCredentials.user.email,
+        //     masjid: payload.masjid.place_id,
+        //   })
+        //     .then(() => {
+        //       setDoc(doc(database, 'masjids', payload.masjid.place_id), { ...payload.masjid })
+        //         .then(resolve())
+        //         .catch(err => reject(err));
+        //     })
+        //     .catch(err => reject(err));
+        // })
+        // .catch(err => {
+        //   reject(err);
+        // });
       })
-      .catch(err => {
-        reject(err);
-      });
+      .catch(err => reject(err));
   });
 };
 

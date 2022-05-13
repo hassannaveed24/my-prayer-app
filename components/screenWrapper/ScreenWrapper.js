@@ -29,6 +29,9 @@ const styles = StyleSheet.create({
     // backgroundColor: theme.background,
     height: Dimensions.get('screen').height - 130,
     // flex: 1,
+    // alignItems: 'center',
+    // justifyContent: 'center',
+
     padding: 20,
   },
   backgroundImage: { width: '100%', height: '100%', resizeMode: 'cover', position: 'absolute' },

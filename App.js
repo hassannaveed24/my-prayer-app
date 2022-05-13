@@ -27,7 +27,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <NavigationContainer>
         <Drawer.Navigator
-          initialRouteName="Prayer Times"
+          initialRouteName="Maps"
           screenOptions={{
             drawerActiveBackgroundColor: theme.title,
             drawerContentContainerStyle: styles.container,

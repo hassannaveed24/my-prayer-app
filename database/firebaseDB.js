@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 import {
   FIREBASE_API_KEY,
@@ -10,7 +11,6 @@ import {
   FIREBASE_APP_ID,
   FIREBASE_MEASUREMENT_ID,
 } from '@env';
-import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: FIREBASE_API_KEY,

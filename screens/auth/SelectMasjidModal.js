@@ -102,8 +102,7 @@ const SelectMasjidModal = ({ selectMasjidModalVisible, setSelectMasjidModalVisib
             region={region}
             onRegionChangeComplete={setRegion}
             followsUserLocation
-            showsMyLocationButton
-            loadingEnabled>
+            showsMyLocationButton>
             {markerList?.map((marker, index) => {
               return (
                 <Marker
