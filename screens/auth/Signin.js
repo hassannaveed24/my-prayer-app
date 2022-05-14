@@ -34,8 +34,8 @@ const Signin = () => {
     mutationFn,
     {
       onSuccess: res => {
-        console.log('success');
-        console.log(res);
+        // console.log('success');
+        // console.log(res);
       },
       onError: err => {
         console.log('error');
@@ -48,6 +48,7 @@ const Signin = () => {
   const formik = useFormik({
     initialValues: { name: '', email: '', password: '', masjid: '' },
     onSubmit: async values => {
+      if (mutation.isLoading) return;
       mutation.mutate(values);
     },
   });
@@ -88,9 +89,8 @@ const Signin = () => {
             <TextInput
               style={styles.textInput}
               ref={ref => (passwordInputRef.current = ref)}
-              placeholderTextColor={theme.placeholder}
-              blurOnSubmit={false}
               placeholder="Password"
+              placeholderTextColor={theme.placeholder}
               autoCapitalize="none"
               secureTextEntry={isPasswordHide}
               autoCorrect={false}

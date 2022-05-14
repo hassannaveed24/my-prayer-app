@@ -10,6 +10,7 @@ import {
   TouchableWithoutFeedback,
   ToastAndroid,
   Platform,
+  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -41,6 +42,7 @@ export default function Prayer({ navigation }) {
   );
   const [prayerTimes, setPrayerTimes] = React.useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState(null);
   useEffect(() => {
     async function gettingCoords() {
       let { status } = await Location.requestForegroundPermissionsAsync();
@@ -61,6 +63,10 @@ export default function Prayer({ navigation }) {
       }
     }
     gettingCoords();
+  }, []);
+  useEffect(() => {
+    const unsubscribe = authentication.onAuthStateChanged(setUser);
+    return unsubscribe;
   }, []);
 
   const getCurrentLocation = async () => {
@@ -146,7 +152,19 @@ export default function Prayer({ navigation }) {
     if (signOutMutation.isLoading) {
       return;
     }
-    signOutMutation.mutate();
+    Alert.alert('Sign Out', 'Are you sure you want to be signed out?', [
+      {
+        text: 'No',
+        style: 'cancel',
+        onPress: () => {},
+      },
+      {
+        text: 'Yes',
+        onPress: () => {
+          signOutMutation.mutate();
+        },
+      },
+    ]);
   };
   ///////////////////////////////////////////////////////////////
 
@@ -154,7 +172,7 @@ export default function Prayer({ navigation }) {
     <>
       <View style={styles.container}>
         <ImageBackground source={backgroundImage} style={styles.image} />
-        {true && (
+        {user && (
           <TouchableWithoutFeedback onPress={handleSignOut}>
             <View style={styles.logoutIconView}>
               <Icon name="log-out-outline" size={40} color={theme.placeholder} />

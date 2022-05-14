@@ -39,6 +39,13 @@ const mutationFn = payload => {
           setDoc(doc(database, 'masjids', payload.masjid.place_id), {
             ...payload.masjid,
             imam: userCredentials.user.uid,
+            prayerTimes: {
+              fajar: null,
+              duhar: null,
+              asar: null,
+              maghrib: null,
+              isha: null,
+            },
           })
             .then(() => {
               resolve();
@@ -66,7 +73,7 @@ const mutationFn = payload => {
   });
 };
 
-const Signup = () => {
+const Signup = ({ navigation }) => {
   // const loggedinUser = useSelector(store => store.auth.user);
   const [isPasswordHide, setIsPasswordHide] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -75,7 +82,9 @@ const Signup = () => {
   const mutation = useMutation(
     mutationFn,
     {
-      onSuccess: res => {},
+      onSuccess: res => {
+        // navigation.navigate('Home');
+      },
       onError: err => {
         ToastAndroid.show(err.message, ToastAndroid.SHORT);
       },
