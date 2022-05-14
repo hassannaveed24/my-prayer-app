@@ -16,6 +16,155 @@ import { useMutation, useQuery } from 'react-query';
 import axios from 'axios';
 import { GOOGLE_API_KEY, RADIUS } from '@env';
 import theme from '../constants/theme';
+import dayjs from 'dayjs';
+import { collection, documentId, FieldPath, getDocs, query, where } from 'firebase/firestore';
+import { app, database } from '../database/firebaseDB';
+
+const namazLabels = ['fajar', 'duhar', 'asar', 'maghrib', 'isha'];
+
+const getHours = $object => {
+  const minutes = $object.minute();
+  const hours = $object.hour();
+
+  return (((hours + minutes / 60) * 100) / 24).toFixed(2);
+};
+
+const filterMasjids = $masjids => {
+  const currentTime = dayjs();
+  const currentHours = getHours(currentTime);
+
+  return $masjids.filter($masjid => {
+    const prayerDifferences = [];
+    const differencesinNum = [];
+
+    namazLabels.forEach($namaz => {
+      let prayerTime = $masjid.prayerTimes[$namaz];
+      let prayerDifference = null;
+
+      if (prayerTime) {
+        prayerTime = dayjs(prayerTime.toDate());
+
+        const prayerHours = getHours(prayerTime);
+
+        const difference = Math.abs((prayerHours - currentHours).toFixed(2));
+
+        prayerDifference = { label: $namaz, prayerTime, difference };
+        differencesinNum.push(difference);
+        prayerDifferences.push(prayerDifference);
+      }
+    });
+    const min = Math.min(...differencesinNum);
+
+    let nearestPrayer = prayerDifferences.find($prayer => $prayer.difference === min);
+
+    prayerDifferences.forEach($prayer => {
+      const absoluteDifference = Math.abs((currentHours - $prayer.difference).toFixed(2));
+      const reversedDifference = parseInt(currentHours) + 100 - $prayer.difference;
+      const difference = parseInt(currentHours) > 75 ? reversedDifference : absoluteDifference;
+
+      if (nearestPrayer.difference > difference) nearestPrayer = $prayer;
+    });
+
+    return !dayjs(nearestPrayer.prayerTime)
+      .set('date', parseInt(dayjs(currentTime).format('D')))
+      .set('month', parseInt(dayjs(currentTime).format('M') - 1))
+      .set('year', parseInt(dayjs(currentTime).format('YYYY')))
+      .isBefore(dayjs(currentTime));
+  });
+};
+
+const excludeMasjids = $masjids => {
+  const currentTime = dayjs();
+  const currentHours = getHours(currentTime);
+
+  return $masjids.filter($masjid => {
+    const prayerDifferences = [];
+    const differencesinNum = [];
+
+    namazLabels.forEach($namaz => {
+      let prayerTime = $masjid.prayerTimes[$namaz];
+      let prayerDifference = null;
+
+      if (prayerTime) {
+        prayerTime = dayjs(prayerTime.toDate());
+
+        const prayerHours = getHours(prayerTime);
+
+        const difference = Math.abs((prayerHours - currentHours).toFixed(2));
+
+        prayerDifference = { label: $namaz, prayerTime, difference };
+        differencesinNum.push(difference);
+        prayerDifferences.push(prayerDifference);
+      }
+    });
+    const min = Math.min(...differencesinNum);
+
+    let nearestPrayer = prayerDifferences.find($prayer => $prayer.difference === min);
+
+    prayerDifferences.forEach($prayer => {
+      const absoluteDifference = Math.abs((currentHours - $prayer.difference).toFixed(2));
+      const reversedDifference = parseInt(currentHours) + 100 - $prayer.difference;
+      const difference = parseInt(currentHours) > 75 ? reversedDifference : absoluteDifference;
+
+      if (nearestPrayer.difference > difference) nearestPrayer = $prayer;
+    });
+
+    return dayjs(nearestPrayer.prayerTime)
+      .set('date', parseInt(dayjs(currentTime).format('D')))
+      .set('month', parseInt(dayjs(currentTime).format('M') - 1))
+      .set('year', parseInt(dayjs(currentTime).format('YYYY')))
+      .isBefore(dayjs(currentTime));
+  });
+};
+
+const transformMasjids = $masjids =>
+  $masjids.map($masjid => {
+    const { lat, lng } = $masjid.geometry.location;
+    return {
+      coordinate: { latitude: lat, longitude: lng },
+      title: $masjid?.name,
+      image: $masjid?.icon,
+      place_id: $masjid?.place_id,
+    };
+  });
+
+const queryFn = region => () => {
+  return axios
+    .get('https://maps.googleapis.com/maps/api/place/nearbysearch/json?', {
+      params: {
+        location: `${region.latitude},${region.longitude}`,
+        type: 'mosque',
+        key: GOOGLE_API_KEY,
+        radius: RADIUS,
+      },
+      // headers: { Authorization: `Bearer ${}` },
+    })
+    .then(async $xhr => {
+      // const placeIds = $xhr.data.results.map($masjid => $masjid.place_id);
+
+      const masjidCollectionRef = collection(database, 'masjids');
+      const masjidSnapshot = await getDocs(masjidCollectionRef);
+
+      const masjids = [];
+      masjidSnapshot.forEach($doc => masjids.push($doc.data()));
+
+      // const filteredMasjids = filterMasjids(masjids);
+      const excludedMasjids = excludeMasjids(masjids);
+
+      const queriedMasjids = $xhr.data.results;
+
+      const showMasjids = queriedMasjids.filter(queriedMasjid => {
+        return (
+          excludedMasjids.findIndex(
+            excludedMasjid => excludedMasjid.place_id === queriedMasjid.place_id,
+          ) < 0
+        );
+      });
+
+      // return [...transformMasjids(queriedMasjids), ...filteredMasjids];
+      return [...transformMasjids(showMasjids)];
+    });
+};
 
 export default function Maps({ navigation }) {
   const [region, setRegion] = useState({
@@ -43,37 +192,27 @@ export default function Maps({ navigation }) {
   const handleMarkerPress = marker => {
     console.log(marker.nativeEvent.coordinate);
   };
-  const masjidQuery = useQuery(
-    ['masjid', region.latitude, region.longitude],
-    () => {
-      return axios.get('https://maps.googleapis.com/maps/api/place/nearbysearch/json?', {
-        params: {
-          location: `${region.latitude},${region.longitude}`,
-          type: 'mosque',
-          key: GOOGLE_API_KEY,
-          radius: RADIUS,
-        },
-        // headers: { Authorization: `Bearer ${}` },
-      });
+  const masjidQuery = useQuery(['masjid', region.latitude, region.longitude], queryFn(region), {
+    onSuccess: res => {
+      const nowTime = new Date();
+
+      // const newMarkerList = res.data.results.map(marker => {
+      //   const { lat, lng } = marker.geometry.location;
+      //   return {
+      //     coordinate: { latitude: lat, longitude: lng },
+      //     title: marker?.name,
+      //     image: marker?.icon,
+      //     place_id: marker?.place_id,
+      //   };
+      // });
+      // console.log(dayjs(nowTime).format('hh:mm A'));
+      // setMarkerList(prev => [...new Set([...newMarkerList, ...prev])]);
     },
-    {
-      onSuccess: res => {
-        const newMarkerList = res.data.results.map(marker => {
-          const { lat, lng } = marker.geometry.location;
-          return {
-            coordinate: { latitude: lat, longitude: lng },
-            title: marker?.name,
-            image: marker?.icon,
-          };
-        });
-        setMarkerList(prev => [...new Set([...newMarkerList, ...prev])]);
-      },
-      onError: e => {
-        console.log(e?.message);
-        ToastAndroid.show(e?.message, ToastAndroid.SHORT);
-      },
+    onError: e => {
+      console.log(e?.message);
+      ToastAndroid.show(e?.message, ToastAndroid.SHORT);
     },
-  );
+  });
 
   return (
     <SafeAreaView style={styles.container}>
@@ -91,7 +230,7 @@ export default function Maps({ navigation }) {
         onRegionChangeComplete={setRegion}
         followsUserLocation
         showsMyLocationButton>
-        {markerList?.map((marker, index) => {
+        {masjidQuery.data?.map((marker, index) => {
           return (
             <Marker
               key={index}

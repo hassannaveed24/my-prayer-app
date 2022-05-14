@@ -154,11 +154,14 @@ export default function Prayer({ navigation }) {
     <>
       <View style={styles.container}>
         <ImageBackground source={backgroundImage} style={styles.image} />
-        <TouchableWithoutFeedback onPress={handleSignOut}>
-          <View style={styles.logoutIconView}>
-            <Icon name="log-out-outline" size={40} color={theme.placeholder} />
-          </View>
-        </TouchableWithoutFeedback>
+        {true && (
+          <TouchableWithoutFeedback onPress={handleSignOut}>
+            <View style={styles.logoutIconView}>
+              <Icon name="log-out-outline" size={40} color={theme.placeholder} />
+            </View>
+          </TouchableWithoutFeedback>
+        )}
+
         <View style={styles.Titles}>
           <Text style={styles.title}>PRAYERS TIMINGS</Text>
 
