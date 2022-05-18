@@ -2,8 +2,8 @@ import React from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { NavigationContainer } from '@react-navigation/native';
 import theme from '../../constants/theme';
-import Prayer from '../Prayer';
-import Maps from '../Maps';
+import Prayer from '../../screens/home/Prayer';
+import Maps from '../../screens/maps/Maps';
 import Signup from '../../screens/auth/Signup';
 import Signin from '../../screens/auth/Signin';
 

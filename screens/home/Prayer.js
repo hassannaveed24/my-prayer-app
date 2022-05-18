@@ -18,10 +18,11 @@ import { getPrayerTimings } from './function';
 import { useMutation, useQuery } from 'react-query';
 import axios from 'axios';
 import { GOOGLE_API_KEY, RADIUS } from '@env';
-import backgroundImage from '../assets/images/masjid.jpg';
-import theme from '../constants/theme';
+import backgroundImage from '../../assets/images/masjid.jpg';
+
 import { signOut } from 'firebase/auth';
-import { authentication } from '../database/firebaseDB';
+import { authentication } from '../../database/firebaseDB';
+import theme from '../../constants/theme';
 const signOutMutationFn = payload => {
   return new Promise((resolve, reject) => {
     signOut(authentication)

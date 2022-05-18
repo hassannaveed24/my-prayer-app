@@ -2,8 +2,8 @@ import React from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { NavigationContainer } from '@react-navigation/native';
 import theme from '../../constants/theme';
-import Prayer from '../Prayer';
-import Maps from '../Maps';
+import Prayer from '../../screens/home/Prayer';
+import Maps from '../../screens/maps/Maps';
 import PrayerTimings from '../../screens/prayerTimings/PrayerTimings';
 
 const Drawer = createDrawerNavigator();
@@ -13,7 +13,7 @@ const UserNavigation = () => {
     <>
       <NavigationContainer>
         <Drawer.Navigator
-          initialRouteName="Home"
+          initialRouteName="Prayer Time"
           screenOptions={{
             drawerActiveBackgroundColor: theme.title,
           }}>

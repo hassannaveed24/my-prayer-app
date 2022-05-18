@@ -15,10 +15,11 @@ import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 import { useMutation, useQuery } from 'react-query';
 import axios from 'axios';
 import { GOOGLE_API_KEY, RADIUS } from '@env';
-import theme from '../constants/theme';
+import theme from '../../constants/theme';
 import dayjs from 'dayjs';
 import { collection, documentId, FieldPath, getDocs, query, where } from 'firebase/firestore';
-import { app, database } from '../database/firebaseDB';
+import { app, database } from '../../database/firebaseDB';
+import PrayerTimeModal from './PrayerTimeModal';
 
 const namazLabels = ['fajar', 'duhar', 'asar', 'maghrib', 'isha'];
 
@@ -117,6 +118,37 @@ const excludeMasjids = $masjids => {
   });
 };
 
+const getPrayerTimes = async $masjidIds => {
+  // return new Promise((resolve, reject) => {
+
+  // $masjids.map($masjid => {
+  //   const { lat, lng } = $masjid.geometry.location;
+  //   return {
+  //     coordinate: { latitude: lat, longitude: lng },
+  //     title: $masjid?.name,
+  //     image: $masjid?.icon,
+  //     place_id: $masjid?.place_id,
+  //   };
+  // });
+  const masjids = [];
+  const q = query(collection(database, 'masjids'), where(documentId(), 'in', $masjidIds));
+  const querySnapshot = await getDocs(q);
+  querySnapshot.forEach(doc => {
+    // doc.data() is never undefined for query doc snapshots
+    masjids.push({
+      coordinate: doc.data()?.coordinate,
+      title: doc.data()?.title,
+      image: 'https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/worship_islam-71.png',
+      place_id: doc.data()?.place_id,
+      prayerTimes: doc.data()?.prayerTimes,
+    });
+    // console.log('----------------------------------------');
+    // console.log(doc.id, ' => ', doc.data());
+  });
+  return masjids;
+  // });
+};
+
 const transformMasjids = $masjids =>
   $masjids.map($masjid => {
     const { lat, lng } = $masjid.geometry.location;
@@ -148,7 +180,7 @@ const queryFn = region => () => {
       const masjids = [];
       masjidSnapshot.forEach($doc => masjids.push($doc.data()));
 
-      // const filteredMasjids = filterMasjids(masjids);
+      const filteredMasjids = filterMasjids(masjids);
       const excludedMasjids = excludeMasjids(masjids);
 
       const queriedMasjids = $xhr.data.results;
@@ -160,9 +192,22 @@ const queryFn = region => () => {
           ) < 0
         );
       });
+      const filteredMasjidIds = filteredMasjids.map(masjid => masjid.place_id);
 
+      let masjidsWithPrayerTimes = [];
+      if (filteredMasjidIds.length > 0) {
+        masjidsWithPrayerTimes = await getPrayerTimes(filteredMasjidIds);
+      }
+
+      // console.log('----------------------------------------------------');
+      // masjidsWithPrayerTimes.forEach(masjid => {
+      //   console.log(`${masjid.prayerTimes}`);
+      // });
+      // console.log('----------------------------------------------------');
+
+      // console.log(masjidsWithPrayerTimes);
       // return [...transformMasjids(queriedMasjids), ...filteredMasjids];
-      return [...transformMasjids(showMasjids)];
+      return [...masjidsWithPrayerTimes, ...transformMasjids(showMasjids)];
     });
 };
 
@@ -175,6 +220,8 @@ export default function Maps({ navigation }) {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [markerList, setMarkerList] = useState([]);
+  const [isPrayerTimeModalVisible, setIsPrayerTimeModalVisible] = useState(false);
+  const [prayerMarker, setPrayerMarker] = useState(null);
 
   useEffect(() => {
     async function gettingCoords() {
@@ -232,44 +279,58 @@ export default function Maps({ navigation }) {
         showsMyLocationButton>
         {masjidQuery.data?.map((marker, index) => {
           return (
-            <Marker
-              key={index}
-              {...marker}
-              onPress={() =>
-                Alert.alert('Go To Masjid', `Are you sure you want to go to ${marker.title}?`, [
-                  {
-                    text: 'No',
-                    onPress: () => console.log('Cancel Pressed'),
-                    style: 'cancel',
-                  },
-                  {
-                    text: 'Yes',
-                    onPress: () => {
-                      const url = Platform.select({
-                        ios:
-                          'maps:' +
-                          marker.coordinate.latitude +
-                          ',' +
-                          marker.coordinate.longitude +
-                          '?q=' +
-                          marker.title,
-                        android:
-                          'geo:' +
-                          marker.coordinate.latitude +
-                          ',' +
-                          marker.coordinate.longitude +
-                          '?q=' +
-                          marker.title,
-                      });
-                      Linking.openURL(url);
+            <>
+              <Marker
+                key={index}
+                {...marker}
+                onPress={() =>
+                  Alert.alert('Go To Masjid', `Are you sure you want to go to ${marker.title}?`, [
+                    {
+                      text: 'No',
+                      onPress: () => console.log('Cancel Pressed'),
+                      style: 'cancel',
                     },
-                  },
-                ])
-              }
-            />
+                    {
+                      text: 'Yes',
+                      onPress: () => {
+                        const url = Platform.select({
+                          ios:
+                            'maps:' +
+                            marker.coordinate.latitude +
+                            ',' +
+                            marker.coordinate.longitude +
+                            '?q=' +
+                            marker.title,
+                          android:
+                            'geo:' +
+                            marker.coordinate.latitude +
+                            ',' +
+                            marker.coordinate.longitude +
+                            '?q=' +
+                            marker.title,
+                        });
+                        Linking.openURL(url);
+                      },
+                    },
+                    {
+                      text: 'Show Prayer Time',
+                      onPress: () => {
+                        setPrayerMarker(marker);
+                        setIsPrayerTimeModalVisible(true);
+                      },
+                    },
+                  ])
+                }
+              />
+            </>
           );
         })}
       </MapView>
+      <PrayerTimeModal
+        isPrayerTimeModalVisible={isPrayerTimeModalVisible}
+        setIsPrayerTimeModalVisible={setIsPrayerTimeModalVisible}
+        marker={prayerMarker}
+      />
       {/* {!getNearbyMosquesMutation.isLoading && !isLoading && (
         <MapView
           style={{ height: '100%', width: '100%' }}
