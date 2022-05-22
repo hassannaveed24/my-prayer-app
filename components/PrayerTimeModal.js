@@ -12,17 +12,41 @@ import {
   ActivityIndicator,
   Dimensions,
   ImageBackground,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import * as Location from 'expo-location';
 import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 import axios from 'axios';
 import { useMutation, useQuery } from 'react-query';
 import _ from 'lodash';
-import theme from '../../constants/theme';
+import theme from '../constants/theme';
 import { GOOGLE_API_KEY, RADIUS } from '@env';
 import { Formik } from 'formik';
 import dayjs from 'dayjs';
-import backgroundImage from '../../assets/images/masjid.jpg';
+import backgroundImage from '../assets/images/masjid.jpg';
+
+const handleNavigateButton = marker => {
+  if (marker) {
+    Alert.alert('Go To Masjid', `Are you sure you want to go to ${marker.title}?`, [
+      {
+        text: 'No',
+        onPress: () => console.log('Cancel Pressed'),
+        style: 'cancel',
+      },
+      {
+        text: 'Yes',
+        onPress: () => {
+          const { latitude, longitude } = marker.coordinate;
+          const url = Platform.select({
+            ios: 'maps:' + latitude + ',' + longitude + '?q=' + marker.title,
+            android: 'geo:' + latitude + ',' + longitude + '?q=' + marker.title,
+          });
+          Linking.openURL(url);
+        },
+      },
+    ]);
+  }
+};
 
 const PrayerTimeModal = ({ isPrayerTimeModalVisible, setIsPrayerTimeModalVisible, marker }) => {
   return (
@@ -41,7 +65,7 @@ const PrayerTimeModal = ({ isPrayerTimeModalVisible, setIsPrayerTimeModalVisible
                 {/* Title */}
                 <View style={styles.title1View}>
                   <Text style={styles.title1}>Prayer Times</Text>
-                  <Text style={styles.title2}>{marker.title}</Text>
+                  <Text style={styles.title2}>{marker?.title}</Text>
                 </View>
 
                 {/* Fajar */}
@@ -108,6 +132,17 @@ const PrayerTimeModal = ({ isPrayerTimeModalVisible, setIsPrayerTimeModalVisible
                     </Text>
                   </View>
                 </View>
+
+                {/* Navigate Button */}
+                <TouchableWithoutFeedback onPress={() => handleNavigateButton(marker)}>
+                  <View style={styles.updateButtonView}>
+                    {false ? (
+                      <ActivityIndicator />
+                    ) : (
+                      <Text style={styles.updateButtonText}>Navigate To Masjid</Text>
+                    )}
+                  </View>
+                </TouchableWithoutFeedback>
               </View>
             </ImageBackground>
           </>
@@ -208,6 +243,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 75,
     // top: 230,
+  },
+  updateButtonText: {
+    textTransform: 'uppercase',
+    color: theme.buttonText,
   },
 });
 

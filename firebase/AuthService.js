@@ -5,7 +5,6 @@ class AuthService {
     const auth = getAuth();
     try {
       const response = await createUserWithEmailAndPassword(auth, email, password);
-      console.log(response.user);
     } catch (error) {
       console.error(error);
     }

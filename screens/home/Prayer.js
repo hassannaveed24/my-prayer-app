@@ -23,6 +23,7 @@ import backgroundImage from '../../assets/images/masjid.jpg';
 import { signOut } from 'firebase/auth';
 import { authentication } from '../../database/firebaseDB';
 import theme from '../../constants/theme';
+import NearbyMasjidsModal from './NearbyMasjidsModal';
 const signOutMutationFn = payload => {
   return new Promise((resolve, reject) => {
     signOut(authentication)
@@ -44,6 +45,8 @@ export default function Prayer({ navigation }) {
   const [prayerTimes, setPrayerTimes] = React.useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState(null);
+  const [isNearbyMasjidsModalVisible, setIsNearbyMasjidsModalVisible] = useState(false);
+
   useEffect(() => {
     async function gettingCoords() {
       let { status } = await Location.requestForegroundPermissionsAsync();
@@ -124,16 +127,17 @@ export default function Prayer({ navigation }) {
       },
     },
   );
-  const handleNearestMasjid = async () => {
-    setIsLoading(true);
-    const coords = await getCurrentLocation();
 
-    getNearbyMosquesMutation.mutate({
-      location: `${coords.latitude},${coords.longitude}`,
-      type: 'mosque',
-      key: GOOGLE_API_KEY,
-      radius: RADIUS,
-    });
+  const handleNearbyMasjidsClick = async () => {
+    setIsNearbyMasjidsModalVisible(true);
+    // setIsLoading(true);
+    // const coords = await getCurrentLocation();
+    // getNearbyMosquesMutation.mutate({
+    //   location: `${coords.latitude},${coords.longitude}`,
+    //   type: 'mosque',
+    //   key: GOOGLE_API_KEY,
+    //   radius: RADIUS,
+    // });
   };
 
   const signOutMutation = useMutation(
@@ -216,13 +220,17 @@ export default function Prayer({ navigation }) {
             </View>
           </View>
         </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback onPress={handleNearestMasjid}>
+        <TouchableWithoutFeedback onPress={handleNearbyMasjidsClick}>
           <View style={[styles.button2, {}]}>
             <View style={styles.button2TextView}>
-              <Text style={styles.button2Text}>Go To Nearest Masjid</Text>
+              <Text style={styles.button2Text}>Nearby Masjids</Text>
             </View>
           </View>
         </TouchableWithoutFeedback>
+        <NearbyMasjidsModal
+          isNearbyMasjidsModalVisible={isNearbyMasjidsModalVisible}
+          setIsNearbyMasjidsModalVisible={setIsNearbyMasjidsModalVisible}
+        />
       </View>
     </>
   );

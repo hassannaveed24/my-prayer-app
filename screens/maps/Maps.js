@@ -19,7 +19,7 @@ import theme from '../../constants/theme';
 import dayjs from 'dayjs';
 import { collection, documentId, FieldPath, getDocs, query, where } from 'firebase/firestore';
 import { app, database } from '../../database/firebaseDB';
-import PrayerTimeModal from './PrayerTimeModal';
+import PrayerTimeModal from '../../components/PrayerTimeModal';
 
 const namazLabels = ['fajar', 'duhar', 'asar', 'maghrib', 'isha'];
 
@@ -279,50 +279,48 @@ export default function Maps({ navigation }) {
         showsMyLocationButton>
         {masjidQuery.data?.map((marker, index) => {
           return (
-            <>
-              <Marker
-                key={index}
-                {...marker}
-                onPress={() =>
-                  Alert.alert('Go To Masjid', `Are you sure you want to go to ${marker.title}?`, [
-                    {
-                      text: 'No',
-                      onPress: () => console.log('Cancel Pressed'),
-                      style: 'cancel',
+            <Marker
+              key={index}
+              {...marker}
+              onPress={() =>
+                Alert.alert('Go To Masjid', `Are you sure you want to go to ${marker.title}?`, [
+                  {
+                    text: 'No',
+                    onPress: () => console.log('Cancel Pressed'),
+                    style: 'cancel',
+                  },
+                  {
+                    text: 'Yes',
+                    onPress: () => {
+                      const url = Platform.select({
+                        ios:
+                          'maps:' +
+                          marker.coordinate.latitude +
+                          ',' +
+                          marker.coordinate.longitude +
+                          '?q=' +
+                          marker.title,
+                        android:
+                          'geo:' +
+                          marker.coordinate.latitude +
+                          ',' +
+                          marker.coordinate.longitude +
+                          '?q=' +
+                          marker.title,
+                      });
+                      Linking.openURL(url);
                     },
-                    {
-                      text: 'Yes',
-                      onPress: () => {
-                        const url = Platform.select({
-                          ios:
-                            'maps:' +
-                            marker.coordinate.latitude +
-                            ',' +
-                            marker.coordinate.longitude +
-                            '?q=' +
-                            marker.title,
-                          android:
-                            'geo:' +
-                            marker.coordinate.latitude +
-                            ',' +
-                            marker.coordinate.longitude +
-                            '?q=' +
-                            marker.title,
-                        });
-                        Linking.openURL(url);
-                      },
+                  },
+                  {
+                    text: 'Show Prayer Time',
+                    onPress: () => {
+                      setPrayerMarker(marker);
+                      setIsPrayerTimeModalVisible(true);
                     },
-                    {
-                      text: 'Show Prayer Time',
-                      onPress: () => {
-                        setPrayerMarker(marker);
-                        setIsPrayerTimeModalVisible(true);
-                      },
-                    },
-                  ])
-                }
-              />
-            </>
+                  },
+                ])
+              }
+            />
           );
         })}
       </MapView>
