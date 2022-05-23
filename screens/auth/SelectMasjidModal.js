@@ -19,6 +19,7 @@ import _ from 'lodash';
 import theme from '../../constants/theme';
 import { GOOGLE_API_KEY, RADIUS } from '@env';
 import { Formik } from 'formik';
+import { getAllMasjids } from '../../helper functions';
 
 const SelectMasjidModal = ({ selectMasjidModalVisible, setSelectMasjidModalVisible, formik }) => {
   const [region, setRegion] = useState({
@@ -42,7 +43,7 @@ const SelectMasjidModal = ({ selectMasjidModalVisible, setSelectMasjidModalVisib
       });
     },
     {
-      onSuccess: res => {
+      onSuccess: async res => {
         const newMarkerList = res.data.results.map(marker => {
           const { lat, lng } = marker.geometry.location;
           return {
@@ -52,7 +53,18 @@ const SelectMasjidModal = ({ selectMasjidModalVisible, setSelectMasjidModalVisib
             place_id: marker.place_id,
           };
         });
-        setMarkerList(prev => [...new Set([...newMarkerList, ...prev])]);
+        const masjidsWithImam = await getAllMasjids();
+        const differenceOfNewMarkerListAndMasjidsWithImam = newMarkerList.filter(newMarker => {
+          return (
+            masjidsWithImam.findIndex(
+              masjidWithImam => masjidWithImam.place_id === newMarker.place_id,
+            ) < 0
+          );
+        });
+
+        setMarkerList(prev => [
+          ...new Set([...differenceOfNewMarkerListAndMasjidsWithImam, ...prev]),
+        ]);
       },
       onError: e => {
         console.log(e?.message);

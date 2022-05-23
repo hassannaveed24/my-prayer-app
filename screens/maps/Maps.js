@@ -20,6 +20,7 @@ import dayjs from 'dayjs';
 import { collection, documentId, FieldPath, getDocs, query, where } from 'firebase/firestore';
 import { app, database } from '../../database/firebaseDB';
 import PrayerTimeModal from '../../components/PrayerTimeModal';
+import { getAllMasjids } from '../../helper functions';
 
 const namazLabels = ['fajar', 'duhar', 'asar', 'maghrib', 'isha'];
 
@@ -174,12 +175,7 @@ const queryFn = region => () => {
     .then(async $xhr => {
       // const placeIds = $xhr.data.results.map($masjid => $masjid.place_id);
 
-      const masjidCollectionRef = collection(database, 'masjids');
-      const masjidSnapshot = await getDocs(masjidCollectionRef);
-
-      const masjids = [];
-      masjidSnapshot.forEach($doc => masjids.push($doc.data()));
-
+      const masjids = await getAllMasjids();
       const filteredMasjids = filterMasjids(masjids);
       const excludedMasjids = excludeMasjids(masjids);
 

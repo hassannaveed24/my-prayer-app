@@ -203,11 +203,8 @@ export default function Prayer({ navigation }) {
           )}
         </View>
         <View style={styles.spinnerView}>
-          {isLoading || signOutMutation.isLoading ? (
-            <ActivityIndicator size="large" color="white" />
-          ) : (
-            <></>
-          )}
+          {isLoading ||
+            (signOutMutation.isLoading && <ActivityIndicator size="large" color="white" />)}
         </View>
 
         <TouchableWithoutFeedback
