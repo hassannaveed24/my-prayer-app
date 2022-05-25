@@ -133,16 +133,33 @@ export const filterMasjids = $masjids => {
   });
 };
 
-export const transformMasjids = $masjids =>
-  $masjids.map($masjid => {
-    const { lat, lng } = $masjid.geometry.location;
+export const transformMasjids = $masjids => {
+  return $masjids.map($masjid => {
+    const latitude = $masjid?.geometry?.location?.lat || $masjid?.coordinate?.latitude;
+
+    const longitude = $masjid?.geometry?.location?.lng || $masjid?.coordinate?.longitude;
+    const title = $masjid?.name || $masjid?.title;
+    const image =
+      $masjid?.icon ||
+      'https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/worship_islam-71.png';
+    const place_id = $masjid?.place_id;
+    const prayerTimes = $masjid?.prayerTimes || {
+      fajar: null,
+      duhar: null,
+      asar: null,
+      maghrib: null,
+      isha: null,
+    };
+
     return {
-      coordinate: { latitude: lat, longitude: lng },
-      title: $masjid?.name,
-      image: $masjid?.icon,
-      place_id: $masjid?.place_id,
+      coordinate: { latitude, longitude },
+      title,
+      image,
+      place_id,
+      prayerTimes,
     };
   });
+};
 
 export const getAllMasjids = async () => {
   const masjidCollectionRef = collection(database, 'masjids');
@@ -151,4 +168,68 @@ export const getAllMasjids = async () => {
   const masjids = [];
   masjidSnapshot.forEach($doc => masjids.push($doc.data()));
   return masjids;
+};
+
+export const getTimelyMasjids = $masjids => {
+  const currentTime = dayjs();
+  const currentHours = getHours(currentTime);
+
+  return $masjids.filter($masjid => {
+    const prayerDifferences = [];
+    const differencesinNum = [];
+
+    namazLabels.forEach($namaz => {
+      let prayerTime = $masjid.prayerTimes[$namaz];
+      let prayerDifference = null;
+
+      if (prayerTime) {
+        prayerTime = dayjs(prayerTime.toDate());
+
+        const prayerHours = getHours(prayerTime);
+
+        const difference = Math.abs((prayerHours - currentHours).toFixed(2));
+
+        prayerDifference = { label: $namaz, prayerTime, difference };
+        differencesinNum.push(difference);
+        prayerDifferences.push(prayerDifference);
+      }
+    });
+    const min = Math.min(...differencesinNum);
+
+    let nearestPrayer = prayerDifferences.find($prayer => $prayer.difference === min);
+
+    if (prayerDifferences.length > 1) {
+      prayerDifferences.forEach($prayer => {
+        const absoluteDifference = Math.abs((currentHours - $prayer.difference).toFixed(2));
+        const reversedDifference = parseInt(currentHours) + 100 - $prayer.difference;
+        const difference = parseInt(currentHours) > 75 ? reversedDifference : absoluteDifference;
+
+        if (nearestPrayer.difference > difference) nearestPrayer = $prayer;
+      });
+    }
+
+    const normalizedPrayerDate = parseInt(dayjs(currentTime).format('D'));
+    // const normalizedPrayerDate = 2;
+    const normalizedPrayerMonth = parseInt(dayjs(currentTime).format('M'));
+    const normalizedPrayerYear = parseInt(dayjs(currentTime).format('YYYY'));
+
+    const normalizedPrayerTime = dayjs(nearestPrayer.prayerTime)
+      .date(normalizedPrayerDate + 1)
+      .month(normalizedPrayerMonth - 1)
+      .year(normalizedPrayerYear);
+
+    // console.log(
+    //   'prayer time',
+    //   normalizedPrayerDate,
+    //   normalizedPrayerMonth,
+    //   normalizedPrayerYear,
+    //   normalizedPrayerTime,
+    // );
+
+    // console.log('current time', dayjs(currentTime));
+
+    const isBefore = normalizedPrayerTime.isBefore(dayjs(currentTime));
+
+    return !isBefore;
+  });
 };

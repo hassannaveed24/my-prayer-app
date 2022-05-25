@@ -27,7 +27,10 @@ import backgroundImage from '../assets/images/masjid.jpg';
 
 const handleNavigateButton = marker => {
   if (marker) {
-    Alert.alert('Go To Masjid', `Are you sure you want to go to ${marker.title}?`, [
+    const lat = marker?.coordinate?.latitude || marker?.geometry?.location?.lat;
+    const lng = marker?.coordinate?.longitude || marker?.geometry?.location?.lng;
+    const title = marker?.title || marker?.name;
+    Alert.alert('Go To Masjid', `Are you sure you want to go to ${title}?`, [
       {
         text: 'No',
         onPress: () => console.log('Cancel Pressed'),
@@ -36,11 +39,11 @@ const handleNavigateButton = marker => {
       {
         text: 'Yes',
         onPress: () => {
-          const { latitude, longitude } = marker.coordinate;
           const url = Platform.select({
-            ios: 'maps:' + latitude + ',' + longitude + '?q=' + marker.title,
-            android: 'geo:' + latitude + ',' + longitude + '?q=' + marker.title,
+            ios: 'maps:' + lat + ',' + lng + '?q=' + title,
+            android: 'geo:' + lat + ',' + lng + '?q=' + title,
           });
+          console.log(title);
           Linking.openURL(url);
         },
       },
@@ -65,7 +68,7 @@ const PrayerTimeModal = ({ isPrayerTimeModalVisible, setIsPrayerTimeModalVisible
                 {/* Title */}
                 <View style={styles.title1View}>
                   <Text style={styles.title1}>Prayer Times</Text>
-                  <Text style={styles.title2}>{marker?.title}</Text>
+                  <Text style={styles.title2}>{marker?.title || marker?.name}</Text>
                 </View>
 
                 {/* Fajar */}

@@ -26,6 +26,7 @@ import { database } from '../../database/firebaseDB';
 import dayjs from 'dayjs';
 import ScreenWrapper from '../../components/screenWrapper/ScreenWrapper';
 import PrayerTimeModal from '../../components/PrayerTimeModal';
+import { getTimelyMasjids, transformMasjids } from '../../helper functions';
 
 const namazLabels = ['fajar', 'duhar', 'asar', 'maghrib', 'isha'];
 
@@ -49,50 +50,6 @@ const getHours = $object => {
   const hours = $object.hour();
 
   return (((hours + minutes / 60) * 100) / 24).toFixed(2);
-};
-
-const filterMasjids = $masjids => {
-  const currentTime = dayjs();
-  const currentHours = getHours(currentTime);
-
-  return $masjids.filter($masjid => {
-    const prayerDifferences = [];
-    const differencesinNum = [];
-
-    namazLabels.forEach($namaz => {
-      let prayerTime = $masjid.prayerTimes[$namaz];
-      let prayerDifference = null;
-
-      if (prayerTime) {
-        prayerTime = dayjs(prayerTime.toDate());
-
-        const prayerHours = getHours(prayerTime);
-
-        const difference = Math.abs((prayerHours - currentHours).toFixed(2));
-
-        prayerDifference = { label: $namaz, prayerTime, difference };
-        differencesinNum.push(difference);
-        prayerDifferences.push(prayerDifference);
-      }
-    });
-    const min = Math.min(...differencesinNum);
-
-    let nearestPrayer = prayerDifferences.find($prayer => $prayer.difference === min);
-
-    prayerDifferences.forEach($prayer => {
-      const absoluteDifference = Math.abs((currentHours - $prayer.difference).toFixed(2));
-      const reversedDifference = parseInt(currentHours) + 100 - $prayer.difference;
-      const difference = parseInt(currentHours) > 75 ? reversedDifference : absoluteDifference;
-
-      if (nearestPrayer.difference > difference) nearestPrayer = $prayer;
-    });
-
-    return !dayjs(nearestPrayer.prayerTime)
-      .set('date', parseInt(dayjs(currentTime).format('D')))
-      .set('month', parseInt(dayjs(currentTime).format('M') - 1))
-      .set('year', parseInt(dayjs(currentTime).format('YYYY')))
-      .isBefore(dayjs(currentTime));
-  });
 };
 
 const excludeMasjids = $masjids => {
@@ -156,17 +113,6 @@ const getPrayerTimes = async $masjidIds => {
   return masjids;
 };
 
-const transformMasjids = $masjids =>
-  $masjids.map($masjid => {
-    const { lat, lng } = $masjid.geometry.location;
-    return {
-      coordinate: { latitude: lat, longitude: lng },
-      title: $masjid?.name,
-      image: $masjid?.icon,
-      place_id: $masjid?.place_id,
-    };
-  });
-
 const queryFn = async () => {
   const coords = await getCurrentLocation();
 
@@ -188,7 +134,7 @@ const queryFn = async () => {
       const masjids = [];
       masjidSnapshot.forEach($doc => masjids.push($doc.data()));
 
-      const filteredMasjids = filterMasjids(masjids);
+      const filteredMasjids = getTimelyMasjids(masjids);
       const excludedMasjids = excludeMasjids(masjids);
 
       const queriedMasjids = $xhr.data.results;
@@ -201,15 +147,44 @@ const queryFn = async () => {
         );
       });
 
-      const differenceOfDifferenceOfQueriedandExcludedMasjidsAndFilteredMasjids =
-        filteredMasjids.filter(filteredMasjid => {
-          return differenceOfQueriedandExcludedMasjids.findIndex(
-            differenceOfQueriedandExcludedMasjid =>
-              differenceOfQueriedandExcludedMasjid.place_id === filteredMasjid.place_id,
-          );
-        });
+      // const differenceOfDifferenceOfQueriedandExcludedMasjidsAndFilteredMasjids =
+      //   differenceOfQueriedandExcludedMasjids.filter(differenceOfQueriedandExcludedMasjid => {
+      //     return filteredMasjids.findIndex(
+      //       filteredMasjid =>
+      //         filteredMasjid.place_id === differenceOfQueriedandExcludedMasjid.place_id,
+      //     );
+      //   });
+      // const transformedMasjids = transformMasjids(
+      //   differenceOfDifferenceOfQueriedandExcludedMasjidsAndFilteredMasjids,
+      // );
 
-      return differenceOfDifferenceOfQueriedandExcludedMasjidsAndFilteredMasjids;
+      // (queriedMasjids + timelyMasjids) - excludedMasjids
+
+      const queriedMasjidIds = differenceOfQueriedandExcludedMasjids.map(
+        $masjid => $masjid.place_id,
+      );
+
+      const timelyMasjidIds = filteredMasjids.map($masjid => $masjid.place_id);
+
+      const timelyAndQueriedMasjidIds = [...new Set([...queriedMasjidIds, timelyMasjidIds])];
+
+      const timelyQueriedMasjids = [...filteredMasjids, ...differenceOfQueriedandExcludedMasjids];
+
+      const dedupedPopulatedTimelyQueriedMasjids = [];
+
+      timelyQueriedMasjids.forEach($masjid => {
+        const existingIndex = dedupedPopulatedTimelyQueriedMasjids.findIndex(
+          $e => $e.place_id === $masjid.place_id,
+        );
+
+        if (existingIndex === -1) {
+          dedupedPopulatedTimelyQueriedMasjids.push($masjid);
+        }
+      });
+
+      const transformedMasjids = transformMasjids(dedupedPopulatedTimelyQueriedMasjids);
+
+      return transformedMasjids;
     });
 };
 
@@ -265,11 +240,11 @@ const NearbyMasjidsModal = ({ isNearbyMasjidsModalVisible, setIsNearbyMasjidsMod
               <View style={styles.title1View}>
                 <Text style={styles.title1}>Nearby Masjids</Text>
               </View>
-              {query.data?.map(masjid => (
-                <TouchableWithoutFeedback onPress={() => handleMasjidClick(masjid)}>
+              {query.data?.map((masjid, index) => (
+                <TouchableWithoutFeedback key={index} onPress={() => handleMasjidClick(masjid)}>
                   <View style={styles.inputView}>
                     <View>
-                      <Text style={styles.times}>{masjid.title}</Text>
+                      <Text style={styles.times}>{masjid.title || masjid.name}</Text>
                     </View>
                   </View>
                 </TouchableWithoutFeedback>
