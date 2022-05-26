@@ -26,7 +26,11 @@ import { database } from '../../database/firebaseDB';
 import dayjs from 'dayjs';
 import ScreenWrapper from '../../components/screenWrapper/ScreenWrapper';
 import PrayerTimeModal from '../../components/PrayerTimeModal';
-import { getTimelyMasjids, transformMasjids } from '../../helper functions';
+import {
+  getTimelyMasjids,
+  intersectionOfTwoArrays,
+  transformMasjids,
+} from '../../helper functions';
 
 const namazLabels = ['fajar', 'duhar', 'asar', 'maghrib', 'isha'];
 
@@ -139,6 +143,7 @@ const queryFn = async () => {
 
       const queriedMasjids = $xhr.data.results;
 
+      // quried - excluded
       const differenceOfQueriedandExcludedMasjids = queriedMasjids.filter(queriedMasjid => {
         return (
           excludedMasjids.findIndex(
@@ -158,41 +163,84 @@ const queryFn = async () => {
       //   differenceOfDifferenceOfQueriedandExcludedMasjidsAndFilteredMasjids,
       // );
 
+      // console.log('hello');
+
+      //intersection of differenceOfQueriedandExcludedMasjids and queried masjids
+      const finalArray = intersectionOfTwoArrays(
+        queriedMasjids,
+        differenceOfQueriedandExcludedMasjids,
+      );
+      // console.log('hello-------------------------------------------------------');
+      // filteredMasjids.forEach(masjid => {
+      //   console.log(masjid.title || masjid.name);
+      //   if (masjid.title || masjid.name === 'Masjid-e-Quba Ahle Hadees') console.log(masjid);
+      // });
+
       // (queriedMasjids + timelyMasjids) - excludedMasjids
 
-      const queriedMasjidIds = differenceOfQueriedandExcludedMasjids.map(
-        $masjid => $masjid.place_id,
-      );
+      const finalMasjidIds = finalArray.map($masjid => $masjid.place_id);
 
       const timelyMasjidIds = filteredMasjids.map($masjid => $masjid.place_id);
 
-      const timelyAndQueriedMasjidIds = [...new Set([...queriedMasjidIds, timelyMasjidIds])];
+      // const timelyAndQueriedMasjidIds = [...new Set([...queriedMasjidIds, ...timelyMasjidIds])];
 
-      const timelyQueriedMasjids = [...filteredMasjids, ...differenceOfQueriedandExcludedMasjids];
+      // const timelyQueriedMasjids = [...filteredMasjids, ...finalArray];
 
-      const dedupedPopulatedTimelyQueriedMasjids = [];
+      //Show only final Masjids with prayer times of timely masjids
+      // const showMasjids = [];
+      // finalArray.forEach($finalMasjid =>
+      //   filteredMasjids.forEach($filteredMasjid => {
+      //     if ($filteredMasjid.place_id === $finalMasjid.place_id) {
+      //       showMasjids.push($filteredMasjid);
+      //     } else if (!showMasjids.find($masjid => $masjid.place_id === $finalMasjid.place_id))
+      //       showMasjids.push($finalMasjid);
+      //   }),
+      // );
 
-      timelyQueriedMasjids.forEach($masjid => {
-        const existingIndex = dedupedPopulatedTimelyQueriedMasjids.findIndex(
-          $e => $e.place_id === $masjid.place_id,
+      const showMasjids = [];
+
+      // console.log(finalArray.map($e => $e.title || $e.name));
+
+      finalArray.forEach(($finalMasjid, index) => {
+        const correspondingTimelyMasjid = filteredMasjids.find(
+          $filteredMasjid => $filteredMasjid.place_id === $finalMasjid.place_id,
         );
 
-        if (existingIndex === -1) {
-          dedupedPopulatedTimelyQueriedMasjids.push($masjid);
-        }
+        if (correspondingTimelyMasjid) finalArray[index] = correspondingTimelyMasjid;
       });
 
-      const transformedMasjids = transformMasjids(dedupedPopulatedTimelyQueriedMasjids);
+      // const timelyQueriedMasjids = [...finalArray];
+
+      // const dedupedPopulatedTimelyQueriedMasjids = [];
+
+      // timelyQueriedMasjids.forEach($masjid => {
+      //   // console.log($masjid.name);
+      //   const existingIndex = dedupedPopulatedTimelyQueriedMasjids.findIndex(
+      //     $e => $e.place_id === $masjid.place_id,
+      //   );
+
+      //   if (existingIndex === -1) {
+      //     dedupedPopulatedTimelyQueriedMasjids.push($masjid);
+      //   }
+      // });
+
+      const transformedMasjids = transformMasjids(finalArray);
 
       return transformedMasjids;
     });
 };
 
-const NearbyMasjidsModal = ({ isNearbyMasjidsModalVisible, setIsNearbyMasjidsModalVisible }) => {
+const NearbyMasjidsModal = ({
+  isNearbyMasjidsModalVisible,
+  setIsNearbyMasjidsModalVisible,
+  isLoading,
+  setIsLoading,
+}) => {
   const [isPrayerTimeModalVisible, setIsPrayerTimeModalVisible] = useState(false);
   const [currentMasjid, setCurrentMasjid] = useState({});
   useEffect(() => {
     query.refetch();
+    setIsLoading(query.isLoading);
 
     return () => {};
   }, [isNearbyMasjidsModalVisible]);

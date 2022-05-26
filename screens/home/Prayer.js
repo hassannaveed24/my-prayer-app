@@ -203,8 +203,9 @@ export default function Prayer({ navigation }) {
           )}
         </View>
         <View style={styles.spinnerView}>
-          {isLoading ||
-            (signOutMutation.isLoading && <ActivityIndicator size="large" color="white" />)}
+          {(isLoading || signOutMutation.isLoading) && (
+            <ActivityIndicator size="large" color="white" />
+          )}
         </View>
 
         <TouchableWithoutFeedback
@@ -227,6 +228,8 @@ export default function Prayer({ navigation }) {
         <NearbyMasjidsModal
           isNearbyMasjidsModalVisible={isNearbyMasjidsModalVisible}
           setIsNearbyMasjidsModalVisible={setIsNearbyMasjidsModalVisible}
+          isLoading={isLoading}
+          setIsLoading={setIsLoading}
         />
       </View>
     </>

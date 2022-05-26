@@ -233,3 +233,16 @@ export const getTimelyMasjids = $masjids => {
     return !isBefore;
   });
 };
+
+// Generic helper function that can be used for the intersection, inFirstOnly, inSecondOnly operations:
+const operation = (array1, array2, isUnion = false) =>
+  array1.filter(
+    (
+      set => a =>
+        isUnion === set.has(a.place_id)
+    )(new Set(array2.map(b => b.place_id))),
+  );
+
+export const intersectionOfTwoArrays = (array1, array2) => operation(array1, array2, true);
+export const inFirstOnly = operation;
+export const inSecondOnly = (array1, array2) => inFirstOnly(array2, array1);
