@@ -21,6 +21,10 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
+      },
+      "package": "com.prayer.app",
+      "config": {
+        "googleMaps": { "apiKey": "AIzaSyCyAghJnF-C_BMqaSVE18BIG-NBsEhBjRg" }
       }
     },
     "web": {

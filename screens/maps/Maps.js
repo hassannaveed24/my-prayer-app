@@ -21,6 +21,7 @@ import { collection, documentId, FieldPath, getDocs, query, where } from 'fireba
 import { app, database } from '../../database/firebaseDB';
 import PrayerTimeModal from '../../components/PrayerTimeModal';
 import { getAllMasjids } from '../../helper functions';
+import ScreenWrapper from '../../components/screenWrapper/ScreenWrapper';
 
 const namazLabels = ['fajar', 'duhar', 'asar', 'maghrib', 'isha'];
 
@@ -214,8 +215,6 @@ export default function Maps({ navigation }) {
     latitudeDelta: 0.0922,
     longitudeDelta: 0.0421,
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [markerList, setMarkerList] = useState([]);
   const [isPrayerTimeModalVisible, setIsPrayerTimeModalVisible] = useState(false);
   const [prayerMarker, setPrayerMarker] = useState(null);
 
@@ -232,9 +231,6 @@ export default function Maps({ navigation }) {
     gettingCoords();
   }, []);
 
-  const handleMarkerPress = marker => {
-    console.log(marker.nativeEvent.coordinate);
-  };
   const masjidQuery = useQuery(['masjid', region.latitude, region.longitude], queryFn(region), {
     onSuccess: res => {
       const nowTime = new Date();
@@ -265,7 +261,7 @@ export default function Maps({ navigation }) {
         </View>
       )}
       <MapView
-        style={{ height: '100%', width: '100%' }}
+        style={styles.map}
         provider={PROVIDER_GOOGLE}
         showsUserLocation
         // initialRegion={region}
@@ -385,6 +381,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  map: {
+    height: '100%',
+    width: '100%',
+    flex: 1,
   },
   spinnerView: {
     position: 'absolute',
