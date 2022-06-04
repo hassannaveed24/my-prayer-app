@@ -16,7 +16,7 @@ const WithoutUserNavigation = () => {
         <Drawer.Navigator
           initialRouteName="Home"
           screenOptions={{
-            drawerActiveBackgroundColor: theme.title,
+            //drawerActiveBackgroundColor: theme.title,
           }}>
           <Drawer.Screen name="Home" component={Prayer} />
           <Drawer.Screen name="Maps" component={Maps} />

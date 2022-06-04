@@ -17,7 +17,7 @@ import * as Location from 'expo-location';
 import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 import axios from 'axios';
 import { useMutation, useQuery } from 'react-query';
-import _ from 'lodash';
+import _, { truncate } from 'lodash';
 import theme from '../../constants/theme';
 import { GOOGLE_API_KEY, RADIUS } from '@env';
 import { Formik } from 'formik';
@@ -30,6 +30,7 @@ import {
   getTimelyMasjids,
   intersectionOfTwoArrays,
   transformMasjids,
+  excludeMasjids,
 } from '../../helper functions';
 
 const namazLabels = ['fajar', 'duhar', 'asar', 'maghrib', 'isha'];
@@ -54,50 +55,6 @@ const getHours = $object => {
   const hours = $object.hour();
 
   return (((hours + minutes / 60) * 100) / 24).toFixed(2);
-};
-
-const excludeMasjids = $masjids => {
-  const currentTime = dayjs();
-  const currentHours = getHours(currentTime);
-
-  return $masjids.filter($masjid => {
-    const prayerDifferences = [];
-    const differencesinNum = [];
-
-    namazLabels.forEach($namaz => {
-      let prayerTime = $masjid.prayerTimes[$namaz];
-      let prayerDifference = null;
-
-      if (prayerTime) {
-        prayerTime = dayjs(prayerTime.toDate());
-
-        const prayerHours = getHours(prayerTime);
-
-        const difference = Math.abs((prayerHours - currentHours).toFixed(2));
-
-        prayerDifference = { label: $namaz, prayerTime, difference };
-        differencesinNum.push(difference);
-        prayerDifferences.push(prayerDifference);
-      }
-    });
-    const min = Math.min(...differencesinNum);
-
-    let nearestPrayer = prayerDifferences.find($prayer => $prayer.difference === min);
-
-    prayerDifferences.forEach($prayer => {
-      const absoluteDifference = Math.abs((currentHours - $prayer.difference).toFixed(2));
-      const reversedDifference = parseInt(currentHours) + 100 - $prayer.difference;
-      const difference = parseInt(currentHours) > 75 ? reversedDifference : absoluteDifference;
-
-      if (nearestPrayer.difference > difference) nearestPrayer = $prayer;
-    });
-
-    return dayjs(nearestPrayer.prayerTime)
-      .set('date', parseInt(dayjs(currentTime).format('D')))
-      .set('month', parseInt(dayjs(currentTime).format('M') - 1))
-      .set('year', parseInt(dayjs(currentTime).format('YYYY')))
-      .isBefore(dayjs(currentTime));
-  });
 };
 
 const getPrayerTimes = async $masjidIds => {
@@ -252,7 +209,8 @@ const NearbyMasjidsModal = ({
     },
     onSuccess: data => {},
     onError: e => {
-      console.log(e?.message);
+      console.log('error');
+      console.log(e.message);
       ToastAndroid.show(e?.message, ToastAndroid.SHORT);
     },
     enabled: isNearbyMasjidsModalVisible,
@@ -267,7 +225,6 @@ const NearbyMasjidsModal = ({
     if (isNearbyMasjidsModalVisible) setIsNearbyMasjidsModalVisible(false);
     return null;
   }
-
   return (
     <Modal
       transparent

@@ -1,4 +1,3 @@
-import { StatusBar, Button } from 'expo-status-bar';
 import * as Location from 'expo-location';
 import React, { useState, useEffect } from 'react';
 import {
@@ -12,155 +11,18 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
-import { useMutation, useQuery } from 'react-query';
+import { useQuery } from 'react-query';
 import axios from 'axios';
 import { GOOGLE_API_KEY, RADIUS } from '@env';
 import theme from '../../constants/theme';
-import dayjs from 'dayjs';
-import { collection, documentId, FieldPath, getDocs, query, where } from 'firebase/firestore';
-import { app, database } from '../../database/firebaseDB';
 import PrayerTimeModal from '../../components/PrayerTimeModal';
-import { getAllMasjids } from '../../helper functions';
-import ScreenWrapper from '../../components/screenWrapper/ScreenWrapper';
-
-const namazLabels = ['fajar', 'duhar', 'asar', 'maghrib', 'isha'];
-
-const getHours = $object => {
-  const minutes = $object.minute();
-  const hours = $object.hour();
-
-  return (((hours + minutes / 60) * 100) / 24).toFixed(2);
-};
-
-const filterMasjids = $masjids => {
-  const currentTime = dayjs();
-  const currentHours = getHours(currentTime);
-
-  return $masjids.filter($masjid => {
-    const prayerDifferences = [];
-    const differencesinNum = [];
-
-    namazLabels.forEach($namaz => {
-      let prayerTime = $masjid.prayerTimes[$namaz];
-      let prayerDifference = null;
-
-      if (prayerTime) {
-        prayerTime = dayjs(prayerTime.toDate());
-
-        const prayerHours = getHours(prayerTime);
-
-        const difference = Math.abs((prayerHours - currentHours).toFixed(2));
-
-        prayerDifference = { label: $namaz, prayerTime, difference };
-        differencesinNum.push(difference);
-        prayerDifferences.push(prayerDifference);
-      }
-    });
-    const min = Math.min(...differencesinNum);
-
-    let nearestPrayer = prayerDifferences.find($prayer => $prayer.difference === min);
-
-    prayerDifferences.forEach($prayer => {
-      const absoluteDifference = Math.abs((currentHours - $prayer.difference).toFixed(2));
-      const reversedDifference = parseInt(currentHours) + 100 - $prayer.difference;
-      const difference = parseInt(currentHours) > 75 ? reversedDifference : absoluteDifference;
-
-      if (nearestPrayer.difference > difference) nearestPrayer = $prayer;
-    });
-
-    return !dayjs(nearestPrayer.prayerTime)
-      .set('date', parseInt(dayjs(currentTime).format('D')))
-      .set('month', parseInt(dayjs(currentTime).format('M') - 1))
-      .set('year', parseInt(dayjs(currentTime).format('YYYY')))
-      .isBefore(dayjs(currentTime));
-  });
-};
-
-const excludeMasjids = $masjids => {
-  const currentTime = dayjs();
-  const currentHours = getHours(currentTime);
-
-  return $masjids.filter($masjid => {
-    const prayerDifferences = [];
-    const differencesinNum = [];
-
-    namazLabels.forEach($namaz => {
-      let prayerTime = $masjid.prayerTimes[$namaz];
-      let prayerDifference = null;
-
-      if (prayerTime) {
-        prayerTime = dayjs(prayerTime.toDate());
-
-        const prayerHours = getHours(prayerTime);
-
-        const difference = Math.abs((prayerHours - currentHours).toFixed(2));
-
-        prayerDifference = { label: $namaz, prayerTime, difference };
-        differencesinNum.push(difference);
-        prayerDifferences.push(prayerDifference);
-      }
-    });
-    const min = Math.min(...differencesinNum);
-
-    let nearestPrayer = prayerDifferences.find($prayer => $prayer.difference === min);
-
-    prayerDifferences.forEach($prayer => {
-      const absoluteDifference = Math.abs((currentHours - $prayer.difference).toFixed(2));
-      const reversedDifference = parseInt(currentHours) + 100 - $prayer.difference;
-      const difference = parseInt(currentHours) > 75 ? reversedDifference : absoluteDifference;
-
-      if (nearestPrayer.difference > difference) nearestPrayer = $prayer;
-    });
-
-    return dayjs(nearestPrayer.prayerTime)
-      .set('date', parseInt(dayjs(currentTime).format('D')))
-      .set('month', parseInt(dayjs(currentTime).format('M') - 1))
-      .set('year', parseInt(dayjs(currentTime).format('YYYY')))
-      .isBefore(dayjs(currentTime));
-  });
-};
-
-const getPrayerTimes = async $masjidIds => {
-  // return new Promise((resolve, reject) => {
-
-  // $masjids.map($masjid => {
-  //   const { lat, lng } = $masjid.geometry.location;
-  //   return {
-  //     coordinate: { latitude: lat, longitude: lng },
-  //     title: $masjid?.name,
-  //     image: $masjid?.icon,
-  //     place_id: $masjid?.place_id,
-  //   };
-  // });
-  const masjids = [];
-  const q = query(collection(database, 'masjids'), where(documentId(), 'in', $masjidIds));
-  const querySnapshot = await getDocs(q);
-  querySnapshot.forEach(doc => {
-    // doc.data() is never undefined for query doc snapshots
-    masjids.push({
-      coordinate: doc.data()?.coordinate,
-      title: doc.data()?.title,
-      image: 'https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/worship_islam-71.png',
-      place_id: doc.data()?.place_id,
-      prayerTimes: doc.data()?.prayerTimes,
-    });
-    // console.log('----------------------------------------');
-    // console.log(doc.id, ' => ', doc.data());
-  });
-  return masjids;
-  // });
-};
-
-const transformMasjids = $masjids =>
-  $masjids.map($masjid => {
-    const { lat, lng } = $masjid.geometry.location;
-    return {
-      coordinate: { latitude: lat, longitude: lng },
-      title: $masjid?.name,
-      image: $masjid?.icon,
-      place_id: $masjid?.place_id,
-    };
-  });
+import {
+  excludeMasjids,
+  filterMasjids,
+  getAllMasjids,
+  getMasjidsByIds,
+  transformMasjids,
+} from '../../helper functions';
 
 const queryFn = region => () => {
   return axios
@@ -193,17 +55,9 @@ const queryFn = region => () => {
 
       let masjidsWithPrayerTimes = [];
       if (filteredMasjidIds.length > 0) {
-        masjidsWithPrayerTimes = await getPrayerTimes(filteredMasjidIds);
+        masjidsWithPrayerTimes = await getMasjidsByIds(filteredMasjidIds);
       }
 
-      // console.log('----------------------------------------------------');
-      // masjidsWithPrayerTimes.forEach(masjid => {
-      //   console.log(`${masjid.prayerTimes}`);
-      // });
-      // console.log('----------------------------------------------------');
-
-      // console.log(masjidsWithPrayerTimes);
-      // return [...transformMasjids(queriedMasjids), ...filteredMasjids];
       return [...masjidsWithPrayerTimes, ...transformMasjids(showMasjids)];
     });
 };
@@ -232,21 +86,7 @@ export default function Maps({ navigation }) {
   }, []);
 
   const masjidQuery = useQuery(['masjid', region.latitude, region.longitude], queryFn(region), {
-    onSuccess: res => {
-      const nowTime = new Date();
-
-      // const newMarkerList = res.data.results.map(marker => {
-      //   const { lat, lng } = marker.geometry.location;
-      //   return {
-      //     coordinate: { latitude: lat, longitude: lng },
-      //     title: marker?.name,
-      //     image: marker?.icon,
-      //     place_id: marker?.place_id,
-      //   };
-      // });
-      // console.log(dayjs(nowTime).format('hh:mm A'));
-      // setMarkerList(prev => [...new Set([...newMarkerList, ...prev])]);
-    },
+    onSuccess: res => {},
     onError: e => {
       console.log(e?.message);
       ToastAndroid.show(e?.message, ToastAndroid.SHORT);
@@ -321,57 +161,6 @@ export default function Maps({ navigation }) {
         setIsPrayerTimeModalVisible={setIsPrayerTimeModalVisible}
         marker={prayerMarker}
       />
-      {/* {!getNearbyMosquesMutation.isLoading && !isLoading && (
-        <MapView
-          style={{ height: '100%', width: '100%' }}
-          provider={PROVIDER_GOOGLE}
-          showsUserLocation
-          initialRegion={region}
-          onRegionChangeComplete={setRegion}
-          followsUserLocation
-          showsMyLocationButton
-          loadingEnabled>
-          {markerList?.map((marker, index) => {
-            return (
-              <Marker
-                key={index}
-                {...marker}
-                onPress={() =>
-                  Alert.alert('Go To Masjid', `Are you sure you want to go to ${marker.title}?`, [
-                    {
-                      text: 'No',
-                      onPress: () => console.log('Cancel Pressed'),
-                      style: 'cancel',
-                    },
-                    {
-                      text: 'Yes',
-                      onPress: () => {
-                        const url = Platform.select({
-                          ios:
-                            'maps:' +
-                            marker.coordinate.latitude +
-                            ',' +
-                            marker.coordinate.longitude +
-                            '?q=' +
-                            marker.title,
-                          android:
-                            'geo:' +
-                            marker.coordinate.latitude +
-                            ',' +
-                            marker.coordinate.longitude +
-                            '?q=' +
-                            marker.title,
-                        });
-                        Linking.openURL(url);
-                      },
-                    },
-                  ])
-                }
-              />
-            );
-          })}
-        </MapView>
-      )} */}
     </SafeAreaView>
   );
 }

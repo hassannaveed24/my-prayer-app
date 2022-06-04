@@ -5,6 +5,12 @@ import { Platform } from 'react-native';
 import { database } from '../database/firebaseDB';
 
 const namazLabels = ['fajar', 'duhar', 'asar', 'maghrib', 'isha'];
+export const getHours = $object => {
+  const minutes = $object.minute();
+  const hours = $object.hour();
+
+  return (((hours + minutes / 60) * 100) / 24).toFixed(2);
+};
 
 export const getMasjidsByIds = async $masjidIds => {
   const masjids = [];
@@ -23,11 +29,53 @@ export const getMasjidsByIds = async $masjidIds => {
   return masjids;
 };
 
-export const getHours = $object => {
-  const minutes = $object.minute();
-  const hours = $object.hour();
+export const excludeMasjids = $masjids => {
+  const currentTime = dayjs();
+  const currentHours = getHours(currentTime);
 
-  return (((hours + minutes / 60) * 100) / 24).toFixed(2);
+  return $masjids.filter($masjid => {
+    const prayerDifferences = [];
+    const differencesinNum = [];
+
+    namazLabels.forEach($namaz => {
+      let prayerTime = $masjid.prayerTimes[$namaz];
+      let prayerDifference = null;
+
+      if (prayerTime) {
+        prayerTime = dayjs(prayerTime.toDate());
+
+        const prayerHours = getHours(prayerTime);
+
+        const difference = Math.abs((prayerHours - currentHours).toFixed(2));
+
+        prayerDifference = { label: $namaz, prayerTime, difference };
+        differencesinNum.push(difference);
+        prayerDifferences.push(prayerDifference);
+      }
+    });
+    if (prayerDifferences.length === 0) {
+      return false;
+    } else {
+      const min = Math.min(...differencesinNum);
+
+      let nearestPrayer = prayerDifferences.find($prayer => $prayer.difference === min);
+
+      prayerDifferences.forEach($prayer => {
+        const absoluteDifference = Math.abs((currentHours - $prayer.difference).toFixed(2));
+        const reversedDifference = parseInt(currentHours, 10) + 100 - $prayer.difference;
+        const difference =
+          parseInt(currentHours, 10) > 75 ? reversedDifference : absoluteDifference;
+
+        if (nearestPrayer.difference > difference) nearestPrayer = $prayer;
+      });
+
+      return dayjs(nearestPrayer.prayerTime)
+        .set('date', parseInt(dayjs(currentTime).format('D'), 10))
+        .set('month', parseInt(dayjs(currentTime).format('M') - 1, 10))
+        .set('year', parseInt(dayjs(currentTime).format('YYYY'), 10))
+        .isBefore(dayjs(currentTime));
+    }
+  });
 };
 
 export const excludeMasjidsWithPrayerTimeCondition = $masjids => {
@@ -54,23 +102,28 @@ export const excludeMasjidsWithPrayerTimeCondition = $masjids => {
         prayerDifferences.push(prayerDifference);
       }
     });
-    const min = Math.min(...differencesinNum);
+    if (prayerDifferences.length === 0) {
+      return false;
+    } else {
+      const min = Math.min(...differencesinNum);
 
-    let nearestPrayer = prayerDifferences.find($prayer => $prayer.difference === min);
+      let nearestPrayer = prayerDifferences.find($prayer => $prayer.difference === min);
 
-    prayerDifferences.forEach($prayer => {
-      const absoluteDifference = Math.abs((currentHours - $prayer.difference).toFixed(2));
-      const reversedDifference = parseInt(currentHours, 10) + 100 - $prayer.difference;
-      const difference = parseInt(currentHours, 10) > 75 ? reversedDifference : absoluteDifference;
+      prayerDifferences.forEach($prayer => {
+        const absoluteDifference = Math.abs((currentHours - $prayer.difference).toFixed(2));
+        const reversedDifference = parseInt(currentHours, 10) + 100 - $prayer.difference;
+        const difference =
+          parseInt(currentHours, 10) > 75 ? reversedDifference : absoluteDifference;
 
-      if (nearestPrayer.difference > difference) nearestPrayer = $prayer;
-    });
+        if (nearestPrayer.difference > difference) nearestPrayer = $prayer;
+      });
 
-    return dayjs(nearestPrayer.prayerTime)
-      .set('date', parseInt(dayjs(currentTime).format('D'), 10))
-      .set('month', parseInt(dayjs(currentTime).format('M') - 1, 10))
-      .set('year', parseInt(dayjs(currentTime).format('YYYY'), 10))
-      .isBefore(dayjs(currentTime));
+      return dayjs(nearestPrayer.prayerTime)
+        .set('date', parseInt(dayjs(currentTime).format('D'), 10))
+        .set('month', parseInt(dayjs(currentTime).format('M') - 1, 10))
+        .set('year', parseInt(dayjs(currentTime).format('YYYY'), 10))
+        .isBefore(dayjs(currentTime));
+    }
   });
 };
 
@@ -113,23 +166,28 @@ export const filterMasjids = $masjids => {
         prayerDifferences.push(prayerDifference);
       }
     });
-    const min = Math.min(...differencesinNum);
+    if (prayerDifferences.length === 0) {
+      return false;
+    } else {
+      const min = Math.min(...differencesinNum);
 
-    let nearestPrayer = prayerDifferences.find($prayer => $prayer.difference === min);
+      let nearestPrayer = prayerDifferences.find($prayer => $prayer.difference === min);
 
-    prayerDifferences.forEach($prayer => {
-      const absoluteDifference = Math.abs((currentHours - $prayer.difference).toFixed(2));
-      const reversedDifference = parseInt(currentHours, 10) + 100 - $prayer.difference;
-      const difference = parseInt(currentHours, 10) > 75 ? reversedDifference : absoluteDifference;
+      prayerDifferences.forEach($prayer => {
+        const absoluteDifference = Math.abs((currentHours - $prayer.difference).toFixed(2));
+        const reversedDifference = parseInt(currentHours, 10) + 100 - $prayer.difference;
+        const difference =
+          parseInt(currentHours, 10) > 75 ? reversedDifference : absoluteDifference;
 
-      if (nearestPrayer.difference > difference) nearestPrayer = $prayer;
-    });
+        if (nearestPrayer.difference > difference) nearestPrayer = $prayer;
+      });
 
-    return !dayjs(nearestPrayer.prayerTime)
-      .set('date', parseInt(dayjs(currentTime).format('D'), 10))
-      .set('month', parseInt(dayjs(currentTime).format('M') - 1, 10))
-      .set('year', parseInt(dayjs(currentTime).format('YYYY'), 10))
-      .isBefore(dayjs(currentTime));
+      return !dayjs(nearestPrayer.prayerTime)
+        .set('date', parseInt(dayjs(currentTime).format('D'), 10))
+        .set('month', parseInt(dayjs(currentTime).format('M') - 1, 10))
+        .set('year', parseInt(dayjs(currentTime).format('YYYY'), 10))
+        .isBefore(dayjs(currentTime));
+    }
   });
 };
 
@@ -177,7 +235,6 @@ export const getTimelyMasjids = $masjids => {
   return $masjids.filter($masjid => {
     const prayerDifferences = [];
     const differencesinNum = [];
-
     namazLabels.forEach($namaz => {
       let prayerTime = $masjid.prayerTimes[$namaz];
       let prayerDifference = null;
@@ -194,43 +251,38 @@ export const getTimelyMasjids = $masjids => {
         prayerDifferences.push(prayerDifference);
       }
     });
-    const min = Math.min(...differencesinNum);
+    if (prayerDifferences.length === 0) {
+      return false;
+    } else {
+      const min = Math.min(...differencesinNum);
 
-    let nearestPrayer = prayerDifferences.find($prayer => $prayer.difference === min);
+      let nearestPrayer = prayerDifferences.find($prayer => $prayer.difference === min);
 
-    if (prayerDifferences.length > 1) {
-      prayerDifferences.forEach($prayer => {
-        const absoluteDifference = Math.abs((currentHours - $prayer.difference).toFixed(2));
-        const reversedDifference = parseInt(currentHours) + 100 - $prayer.difference;
-        const difference = parseInt(currentHours) > 75 ? reversedDifference : absoluteDifference;
+      if (prayerDifferences.length > 1) {
+        prayerDifferences.forEach($prayer => {
+          const absoluteDifference = Math.abs((currentHours - $prayer.difference).toFixed(2));
+          const reversedDifference = parseInt(currentHours, 10) + 100 - $prayer.difference;
+          const difference =
+            parseInt(currentHours, 10) > 75 ? reversedDifference : absoluteDifference;
 
-        if (nearestPrayer.difference > difference) nearestPrayer = $prayer;
-      });
+          if (nearestPrayer.difference > difference) nearestPrayer = $prayer;
+        });
+      }
+
+      const normalizedPrayerDate = parseInt(dayjs(currentTime).format('D'), 10);
+      // const normalizedPrayerDate = 2;
+      const normalizedPrayerMonth = parseInt(dayjs(currentTime).format('M'), 10);
+      const normalizedPrayerYear = parseInt(dayjs(currentTime).format('YYYY'), 10);
+
+      const normalizedPrayerTime = dayjs(nearestPrayer.prayerTime)
+        .date(normalizedPrayerDate + 1)
+        .month(normalizedPrayerMonth - 1)
+        .year(normalizedPrayerYear);
+
+      const isBefore = normalizedPrayerTime.isBefore(dayjs(currentTime));
+
+      return !isBefore;
     }
-
-    const normalizedPrayerDate = parseInt(dayjs(currentTime).format('D'));
-    // const normalizedPrayerDate = 2;
-    const normalizedPrayerMonth = parseInt(dayjs(currentTime).format('M'));
-    const normalizedPrayerYear = parseInt(dayjs(currentTime).format('YYYY'));
-
-    const normalizedPrayerTime = dayjs(nearestPrayer.prayerTime)
-      .date(normalizedPrayerDate + 1)
-      .month(normalizedPrayerMonth - 1)
-      .year(normalizedPrayerYear);
-
-    // console.log(
-    //   'prayer time',
-    //   normalizedPrayerDate,
-    //   normalizedPrayerMonth,
-    //   normalizedPrayerYear,
-    //   normalizedPrayerTime,
-    // );
-
-    // console.log('current time', dayjs(currentTime));
-
-    const isBefore = normalizedPrayerTime.isBefore(dayjs(currentTime));
-
-    return !isBefore;
   });
 };
 

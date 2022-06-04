@@ -61,7 +61,7 @@ export default function Prayer({ navigation }) {
           longitude,
         });
         for (let item of response) {
-          const address = `${item.name}, ${item.street}, ${item.postalCode}, ${item.city}`;
+          const address = ` ${item.city}`;
           setDisplayCurrentAddress(address);
         }
       }
@@ -194,11 +194,26 @@ export default function Prayer({ navigation }) {
         <View style={styles.times1}>
           {prayerTimes != null && (
             <View style={styles.prayerTimesContainer}>
-              <Text style={styles.times}> FAJAR {prayerTimes.timings.Fajr}</Text>
-              <Text style={styles.times}> DUHAR {prayerTimes.timings.Dhuhr}</Text>
-              <Text style={styles.times}> ASAR {prayerTimes.timings.Asr}</Text>
-              <Text style={styles.times}> MAGRIB {prayerTimes.timings.Maghrib}</Text>
-              <Text style={styles.times}> ISHA {prayerTimes.timings.Isha}</Text>
+              <View style={styles.timesView}>
+                <Text style={styles.times}> FAJAR </Text>
+                <Text style={styles.times}> {prayerTimes.timings.Fajr}</Text>
+              </View>
+              <View style={styles.timesView}>
+                <Text style={styles.times}> DUHAR </Text>
+                <Text style={styles.times}> {prayerTimes.timings.Dhuhr}</Text>
+              </View>
+              <View style={styles.timesView}>
+                <Text style={styles.times}> ASAR </Text>
+                <Text style={styles.times}> {prayerTimes.timings.Asr}</Text>
+              </View>
+              <View style={styles.timesView}>
+                <Text style={styles.times}> MAGRIB </Text>
+                <Text style={styles.times}> {prayerTimes.timings.Maghrib}</Text>
+              </View>
+              <View style={styles.timesView}>
+                <Text style={styles.times}> ISHA </Text>
+                <Text style={styles.times}> {prayerTimes.timings.Isha}</Text>
+              </View>
             </View>
           )}
         </View>
@@ -292,21 +307,12 @@ const styles = StyleSheet.create({
   },
 
   button1: {
-    // height: '10%',
-    // width: '90%',
-    // padding: 10,
-    // //bottom:5,
-    // //position:'absolute',
-    // // borderRadius: 40,
-    // color: '#2196F3',
-    // backgroundColor: 'orange',
-
     height: 40,
     width: '90%',
     position: 'absolute',
     bottom: '15%',
     left: '5%',
-    backgroundColor: '#2196F3',
+    backgroundColor: theme.button,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -318,7 +324,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: '5%',
     left: '5%',
-    backgroundColor: '#2196F3',
+    backgroundColor: theme.button,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -329,8 +335,16 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   button2TextView: {},
+  timesView: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    minHeight: 40,
+  },
   times: {
-    fontSize: 20,
+    fontSize: 24,
+    marginTop: 14,
     fontWeight: '700',
     lineHeight: 30,
     //margin:'2%',

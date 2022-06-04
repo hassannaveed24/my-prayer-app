@@ -15,7 +15,7 @@ const UserNavigation = () => {
         <Drawer.Navigator
           initialRouteName="Prayer Time"
           screenOptions={{
-            drawerActiveBackgroundColor: theme.title,
+            //drawerActiveBackgroundColor: theme.title,
           }}>
           <Drawer.Screen name="Home" component={Prayer} />
           <Drawer.Screen name="Maps" component={Maps} />

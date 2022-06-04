@@ -33,10 +33,7 @@ const Signin = () => {
   const mutation = useMutation(
     mutationFn,
     {
-      onSuccess: res => {
-        // console.log('success');
-        // console.log(res);
-      },
+      onSuccess: res => {},
       onError: err => {
         console.log('error');
         ToastAndroid.show(err.message || 'error', ToastAndroid.SHORT);
