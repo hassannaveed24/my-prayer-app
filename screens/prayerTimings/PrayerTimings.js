@@ -20,19 +20,73 @@ import { authentication, database } from '../../database/firebaseDB';
 import CustomPrayerTimeModal from './CustomPrayerTimeModal';
 
 const mutationFn = payload => {
-  return new Promise((resolve, reject) => {
-    getDoc(doc(database, 'users', authentication.currentUser.uid))
-      .then(res => {
-        updateDoc(doc(database, 'masjids', res.data().masjid), {
-          prayerTimes: payload,
-        })
-          .then(() => {
-            resolve();
+  if (!(payload.fajar && payload.duhar && payload.asar && payload.maghrib && payload.isha)) {
+    throw new Error('Please update all prayer times!');
+  } else {
+    const currentTime = dayjs();
+    const fajar = dayjs(payload.fajar)
+      .set('date', parseInt(dayjs(currentTime).format('D'), 10))
+      .set('month', parseInt(dayjs(currentTime).format('M') - 1, 10))
+      .set('year', parseInt(dayjs(currentTime).format('YYYY'), 10));
+    const duhar = dayjs(payload.duhar)
+      .set('date', parseInt(dayjs(currentTime).format('D'), 10))
+      .set('month', parseInt(dayjs(currentTime).format('M') - 1, 10))
+      .set('year', parseInt(dayjs(currentTime).format('YYYY'), 10));
+    const asar = dayjs(payload.asar)
+      .set('date', parseInt(dayjs(currentTime).format('D'), 10))
+      .set('month', parseInt(dayjs(currentTime).format('M') - 1, 10))
+      .set('year', parseInt(dayjs(currentTime).format('YYYY'), 10));
+    const maghrib = dayjs(payload.maghrib)
+      .set('date', parseInt(dayjs(currentTime).format('D'), 10))
+      .set('month', parseInt(dayjs(currentTime).format('M') - 1, 10))
+      .set('year', parseInt(dayjs(currentTime).format('YYYY'), 10));
+    const isha = dayjs(payload.isha)
+      .set('date', parseInt(dayjs(currentTime).format('D'), 10))
+      .set('month', parseInt(dayjs(currentTime).format('M') - 1, 10))
+      .set('year', parseInt(dayjs(currentTime).format('YYYY'), 10));
+
+    const fajarCondition =
+      fajar.isBefore(duhar) &&
+      fajar.isBefore(asar) &&
+      fajar.isBefore(maghrib) &&
+      fajar.isBefore(isha);
+
+    const duharCondition =
+      duhar.isAfter(fajar) &&
+      duhar.isBefore(asar) &&
+      duhar.isBefore(maghrib) &&
+      duhar.isBefore(isha);
+
+    const asarCondition =
+      asar.isAfter(fajar) && asar.isAfter(duhar) && asar.isBefore(maghrib) && asar.isBefore(isha);
+
+    const maghribCondition =
+      maghrib.isAfter(fajar) &&
+      maghrib.isAfter(duhar) &&
+      maghrib.isAfter(asar) &&
+      maghrib.isBefore(isha);
+
+    const ishaCondition =
+      isha.isAfter(fajar) && isha.isAfter(duhar) && isha.isAfter(asar) && isha.isAfter(maghrib);
+
+    if (!(fajarCondition && duharCondition && asarCondition && maghribCondition && ishaCondition)) {
+      throw new Error('Timings not matched!');
+    } else {
+      return new Promise((resolve, reject) => {
+        getDoc(doc(database, 'users', authentication.currentUser.uid))
+          .then(res => {
+            updateDoc(doc(database, 'masjids', res.data().masjid), {
+              prayerTimes: payload,
+            })
+              .then(() => {
+                resolve();
+              })
+              .catch(err => reject(err));
           })
           .catch(err => reject(err));
-      })
-      .catch(err => reject(err));
-  });
+      });
+    }
+  }
 };
 
 const queryFn = () => {
@@ -97,7 +151,7 @@ const PrayerTimings = () => {
   );
 
   const handleUpdateButton = () => {
-    mutation.mutate({ fajar, duhar, asar, maghrib, isha });
+    mutation.mutate({ fajar, duhar, asar, maghrib, isha, customPrayers });
   };
 
   return (

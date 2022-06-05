@@ -138,7 +138,7 @@ const CustomPrayerTimeModal = ({
                 <TouchableWithoutFeedback
                   onPress={() => {
                     if (customPrayers.filter(p => p.prayerName === '').length > 0) {
-                      ToastAndroid.show(`Prayer name can't be empty`, ToastAndroid.LONG);
+                      ToastAndroid.show(`Prayer name can't be empty!`, ToastAndroid.LONG);
                     } else {
                       setIsCustomPrayerTimeModalVisible(false);
                     }
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     backgroundColor: theme.scrollViewBackground,
-    maxHeight: Dimensions.get('screen').height - 430,
+    maxHeight: Dimensions.get('screen').height - 340,
     contentContainer: {
       paddingVertical: 20,
     },
