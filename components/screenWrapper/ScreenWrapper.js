@@ -26,7 +26,7 @@ const ScreenWrapper = ({ children }) => {
 };
 const styles = StyleSheet.create({
   container: {
-    // backgroundColor: theme.background,
+    // backgroundColor: 'orange',
     height: Dimensions.get('screen').height - 130,
     // flex: 1,
     // alignItems: 'center',

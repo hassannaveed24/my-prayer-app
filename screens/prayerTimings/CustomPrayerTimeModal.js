@@ -56,7 +56,6 @@ const CustomPrayerTimeModal = ({
                             style={styles.textInput}
                             autoCapitalize="characters"
                             placeholderTextColor={theme.placeholder}
-                            blurOnSubmit={false}
                             placeholder="Prayer Name"
                             // autoCompleteType=""
                             keyboardType="default"
@@ -77,7 +76,7 @@ const CustomPrayerTimeModal = ({
                             <View style={styles.setPrayerTimeView}>
                               <Text style={styles.times}>
                                 {$customPrayer?.prayerTime
-                                  ? dayjs($customPrayer?.prayerTime).format('hh:mm A')
+                                  ? dayjs($customPrayer.prayerTime).format('hh:mm A')
                                   : `?`}
                               </Text>
                               <View>
