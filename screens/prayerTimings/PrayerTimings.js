@@ -1,25 +1,23 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   View,
   Dimensions,
   Text,
-  TextInput,
   ToastAndroid,
   TouchableWithoutFeedback,
   ActivityIndicator,
-  Button,
   Alert,
 } from 'react-native';
 import ScreenWrapper from '../../components/screenWrapper/ScreenWrapper';
 import theme from '../../constants/theme';
 import { useMutation, useQuery } from 'react-query';
-import { useFormik } from 'formik';
 import Icon from 'react-native-vector-icons/AntDesign';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import dayjs from 'dayjs';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { authentication, database } from '../../database/firebaseDB';
+import CustomPrayerTimeModal from './CustomPrayerTimeModal';
 
 const mutationFn = payload => {
   return new Promise((resolve, reject) => {
@@ -52,15 +50,22 @@ const queryFn = () => {
 };
 const PrayerTimings = () => {
   const [isFajarDatePickerVisible, setIsFajarDatePickerVisible] = useState(false);
-  const [isDuharrDatePickerVisible, setIsDuharrDatePickerVisible] = useState(false);
+  const [isDuharDatePickerVisible, setIsDuharDatePickerVisible] = useState(false);
   const [isAsarDatePickerVisible, setIsAsarDatePickerVisible] = useState(false);
   const [isMaghribDatePickerVisible, setIsMaghribDatePickerVisible] = useState(false);
   const [isIshaDatePickerVisible, setIsIshaDatePickerVisible] = useState(false);
+  const [isCustomPrayerTimeModalVisible, setIsCustomPrayerTimeModalVisible] = useState(false);
   const [fajar, setFajar] = useState(null);
   const [duhar, setDuhar] = useState(null);
   const [asar, setAsar] = useState(null);
   const [maghrib, setMaghrib] = useState(null);
   const [isha, setIsha] = useState(null);
+  const [customPrayers, setCustomPrayers] = useState([
+    {
+      prayerName: 'eid-ul-azha',
+      prayerTime: new Date(),
+    },
+  ]);
 
   const query = useQuery(['getPrayerTimes'], queryFn, {
     onSuccess: res => {
@@ -134,7 +139,7 @@ const PrayerTimings = () => {
                 onCancel={() => setIsFajarDatePickerVisible(false)}
               />
               {/* DUHAR */}
-              <TouchableWithoutFeedback onPress={() => setIsDuharrDatePickerVisible(true)}>
+              <TouchableWithoutFeedback onPress={() => setIsDuharDatePickerVisible(true)}>
                 <View style={styles.inputView}>
                   <View>
                     <Text style={styles.times}>
@@ -147,14 +152,14 @@ const PrayerTimings = () => {
                 </View>
               </TouchableWithoutFeedback>
               <DateTimePickerModal
-                isVisible={isDuharrDatePickerVisible}
+                isVisible={isDuharDatePickerVisible}
                 mode="time"
                 date={duhar ? duhar : new Date()}
                 onConfirm={date => {
                   setDuhar(date);
-                  setIsDuharrDatePickerVisible(false);
+                  setIsDuharDatePickerVisible(false);
                 }}
-                onCancel={() => setIsDuharrDatePickerVisible(false)}
+                onCancel={() => setIsDuharDatePickerVisible(false)}
               />
               {/* ASAR */}
               <TouchableWithoutFeedback onPress={() => setIsAsarDatePickerVisible(true)}>
@@ -225,20 +230,37 @@ const PrayerTimings = () => {
                 }}
                 onCancel={() => setIsIshaDatePickerVisible(false)}
               />
+
+              {/* Custom Prayer Button */}
+              <TouchableWithoutFeedback onPress={() => setIsCustomPrayerTimeModalVisible(true)}>
+                <View style={styles.inputView}>
+                  <View>
+                    <Text style={styles.times}>custom prayer time</Text>
+                  </View>
+                  <View>
+                    <Icon name="edit" size={32} color="white" />
+                  </View>
+                </View>
+              </TouchableWithoutFeedback>
+              <CustomPrayerTimeModal
+                isCustomPrayerTimeModalVisible={isCustomPrayerTimeModalVisible}
+                setIsCustomPrayerTimeModalVisible={setIsCustomPrayerTimeModalVisible}
+                customPrayers={customPrayers}
+                setCustomPrayers={setCustomPrayers}
+              />
             </View>
+            {/* Update Button */}
+            <TouchableWithoutFeedback onPress={handleUpdateButton}>
+              <View style={styles.updateButtonView}>
+                {mutation.isLoading ? (
+                  <ActivityIndicator />
+                ) : (
+                  <Text style={styles.buttonText}>Update Time</Text>
+                )}
+              </View>
+            </TouchableWithoutFeedback>
           </>
         )}
-
-        {/* Update Button */}
-        <TouchableWithoutFeedback onPress={handleUpdateButton}>
-          <View style={styles.updateButtonView}>
-            {mutation.isLoading ? (
-              <ActivityIndicator />
-            ) : (
-              <Text style={styles.updateButtonText}>Update Time</Text>
-            )}
-          </View>
-        </TouchableWithoutFeedback>
       </ScreenWrapper>
     </>
   );
@@ -343,8 +365,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: theme.borderRadius,
     position: 'absolute',
-    bottom: 75,
-    // top: 230,
+    bottom: 15,
   },
   selectMasjidButtonView: {
     maxHeight: 40,
@@ -356,7 +377,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius,
     marginBottom: 20,
   },
-  updateButtonText: {
+  buttonText: {
     textTransform: 'uppercase',
     color: theme.buttonText,
   },

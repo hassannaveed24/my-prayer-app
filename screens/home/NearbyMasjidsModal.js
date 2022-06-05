@@ -31,48 +31,8 @@ import {
   intersectionOfTwoArrays,
   transformMasjids,
   excludeMasjids,
+  getCurrentLocation,
 } from '../../helper functions';
-
-const namazLabels = ['fajar', 'duhar', 'asar', 'maghrib', 'isha'];
-
-const getCurrentLocation = async () => {
-  if (Platform.OS !== 'android') throw new Error('Invalid platform');
-  const status = await Location.requestForegroundPermissionsAsync();
-  if (status.status !== 'granted') throw new Error('Location not granted');
-
-  const location = await Location.getCurrentPositionAsync({});
-
-  // if (location.hasOwnProperty('mocked') && location.mocked) throw new Error('Please turn off mock location');
-
-  return {
-    latitude: location.coords?.latitude,
-    longitude: location.coords?.longitude,
-  };
-};
-
-const getHours = $object => {
-  const minutes = $object.minute();
-  const hours = $object.hour();
-
-  return (((hours + minutes / 60) * 100) / 24).toFixed(2);
-};
-
-const getPrayerTimes = async $masjidIds => {
-  const masjids = [];
-  const q = query(collection(database, 'masjids'), where(documentId(), 'in', $masjidIds));
-  const querySnapshot = await getDocs(q);
-  querySnapshot.forEach(doc => {
-    // doc.data() is never undefined for query doc snapshots
-    masjids.push({
-      coordinate: doc.data()?.coordinate,
-      title: doc.data()?.title,
-      image: 'https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/worship_islam-71.png',
-      place_id: doc.data()?.place_id,
-      prayerTimes: doc.data()?.prayerTimes,
-    });
-  });
-  return masjids;
-};
 
 const queryFn = async () => {
   const coords = await getCurrentLocation();
