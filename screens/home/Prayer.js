@@ -6,18 +6,14 @@ import {
   View,
   ImageBackground,
   ActivityIndicator,
-  Linking,
   TouchableWithoutFeedback,
   ToastAndroid,
-  Platform,
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 import { getPrayerTimings } from './function';
-import { useMutation, useQuery } from 'react-query';
-import axios from 'axios';
-import { GOOGLE_API_KEY, RADIUS } from '@env';
+import { useMutation } from 'react-query';
 import backgroundImage from '../../assets/images/masjid.jpg';
 
 import { signOut } from 'firebase/auth';
@@ -49,18 +45,18 @@ export default function Prayer({ navigation }) {
 
   useEffect(() => {
     async function gettingCoords() {
-      let { status } = await Location.requestForegroundPermissionsAsync();
+      const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         setErrorMsg('Permission to access location was denied');
       }
-      let { coords } = await Location.getCurrentPositionAsync({});
+      const { coords } = await Location.getCurrentPositionAsync({});
       if (coords) {
         const { latitude, longitude } = coords;
-        let response = await Location.reverseGeocodeAsync({
+        const response = await Location.reverseGeocodeAsync({
           latitude,
           longitude,
         });
-        for (let item of response) {
+        for (const item of response) {
           const address = ` ${item.city}`;
           setDisplayCurrentAddress(address);
         }
@@ -73,71 +69,17 @@ export default function Prayer({ navigation }) {
     return unsubscribe;
   }, []);
 
-  const getCurrentLocation = async () => {
-    if (Platform.OS !== 'android') throw new Error('Invalid platform');
-    const status = await Location.requestForegroundPermissionsAsync();
-    if (status.status !== 'granted') throw new Error('Location not granted');
-
-    const location = await Location.getCurrentPositionAsync({});
-
-    // if (location.hasOwnProperty('mocked') && location.mocked) throw new Error('Please turn off mock location');
-
-    return {
-      latitude: location.coords?.latitude,
-      longitude: location.coords?.longitude,
-    };
-  };
   async function setTimings(date) {
     setIsLoading(true);
-    let prayertimes = await getPrayerTimings(date, location);
+    const prayertimes = await getPrayerTimings(date, location);
     setPrayerTimes(prayertimes);
     setIsLoading(false);
 
     // console.log(prayertimes);
   }
-  const getNearbyMosquesMutation = useMutation(
-    params => {
-      return axios.get('https://maps.googleapis.com/maps/api/place/nearbysearch/json?', {
-        params,
-        // headers: { Authorization: `Bearer ${}` },
-      });
-    },
-    {
-      onSuccess: response => {
-        if (response.data.status !== 'OK') {
-          setIsLoading(false);
-          ToastAndroid.show(response.data.status, ToastAndroid.SHORT);
-          return;
-        }
-        let latitude = response?.data?.results[0]?.geometry?.location?.lat;
-        let longitude = response?.data?.results[0]?.geometry?.location?.lng;
-
-        let label = response?.data?.results[0]?.name;
-        const url = Platform.select({
-          ios: 'maps:' + latitude + ',' + longitude + '?q=' + label,
-          android: 'geo:' + latitude + ',' + longitude + '?q=' + label,
-        });
-        setIsLoading(false);
-        Linking.openURL(url);
-      },
-      onError: e => {
-        setIsLoading(false);
-        console.log(e.message);
-        ToastAndroid.show(e.message, ToastAndroid.SHORT);
-      },
-    },
-  );
 
   const handleNearbyMasjidsClick = async () => {
     setIsNearbyMasjidsModalVisible(true);
-    // setIsLoading(true);
-    // const coords = await getCurrentLocation();
-    // getNearbyMosquesMutation.mutate({
-    //   location: `${coords.latitude},${coords.longitude}`,
-    //   type: 'mosque',
-    //   key: GOOGLE_API_KEY,
-    //   radius: RADIUS,
-    // });
   };
 
   const signOutMutation = useMutation(
@@ -171,7 +113,6 @@ export default function Prayer({ navigation }) {
       },
     ]);
   };
-  ///////////////////////////////////////////////////////////////
 
   return (
     <>

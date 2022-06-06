@@ -4,9 +4,6 @@ import {
   Text,
   StyleSheet,
   View,
-  Alert,
-  Platform,
-  Linking,
   ToastAndroid,
   SafeAreaView,
   ActivityIndicator,
@@ -69,54 +66,10 @@ const queryFn = async () => {
         );
       });
 
-      // const differenceOfDifferenceOfQueriedandExcludedMasjidsAndFilteredMasjids =
-      //   differenceOfQueriedandExcludedMasjids.filter(differenceOfQueriedandExcludedMasjid => {
-      //     return filteredMasjids.findIndex(
-      //       filteredMasjid =>
-      //         filteredMasjid.place_id === differenceOfQueriedandExcludedMasjid.place_id,
-      //     );
-      //   });
-      // const transformedMasjids = transformMasjids(
-      //   differenceOfDifferenceOfQueriedandExcludedMasjidsAndFilteredMasjids,
-      // );
-
-      // console.log('hello');
-
-      //intersection of differenceOfQueriedandExcludedMasjids and queried masjids
       const finalArray = intersectionOfTwoArrays(
         queriedMasjids,
         differenceOfQueriedandExcludedMasjids,
       );
-      // console.log('hello-------------------------------------------------------');
-      // filteredMasjids.forEach(masjid => {
-      //   console.log(masjid.title || masjid.name);
-      //   if (masjid.title || masjid.name === 'Masjid-e-Quba Ahle Hadees') console.log(masjid);
-      // });
-
-      // (queriedMasjids + timelyMasjids) - excludedMasjids
-
-      const finalMasjidIds = finalArray.map($masjid => $masjid.place_id);
-
-      const timelyMasjidIds = filteredMasjids.map($masjid => $masjid.place_id);
-
-      // const timelyAndQueriedMasjidIds = [...new Set([...queriedMasjidIds, ...timelyMasjidIds])];
-
-      // const timelyQueriedMasjids = [...filteredMasjids, ...finalArray];
-
-      //Show only final Masjids with prayer times of timely masjids
-      // const showMasjids = [];
-      // finalArray.forEach($finalMasjid =>
-      //   filteredMasjids.forEach($filteredMasjid => {
-      //     if ($filteredMasjid.place_id === $finalMasjid.place_id) {
-      //       showMasjids.push($filteredMasjid);
-      //     } else if (!showMasjids.find($masjid => $masjid.place_id === $finalMasjid.place_id))
-      //       showMasjids.push($finalMasjid);
-      //   }),
-      // );
-
-      const showMasjids = [];
-
-      // console.log(finalArray.map($e => $e.title || $e.name));
 
       finalArray.forEach(($finalMasjid, index) => {
         const correspondingTimelyMasjid = filteredMasjids.find(
@@ -125,21 +78,6 @@ const queryFn = async () => {
 
         if (correspondingTimelyMasjid) finalArray[index] = correspondingTimelyMasjid;
       });
-
-      // const timelyQueriedMasjids = [...finalArray];
-
-      // const dedupedPopulatedTimelyQueriedMasjids = [];
-
-      // timelyQueriedMasjids.forEach($masjid => {
-      //   // console.log($masjid.name);
-      //   const existingIndex = dedupedPopulatedTimelyQueriedMasjids.findIndex(
-      //     $e => $e.place_id === $masjid.place_id,
-      //   );
-
-      //   if (existingIndex === -1) {
-      //     dedupedPopulatedTimelyQueriedMasjids.push($masjid);
-      //   }
-      // });
 
       const transformedMasjids = transformMasjids(finalArray);
 

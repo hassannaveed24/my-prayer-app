@@ -24,7 +24,10 @@ import theme from '../constants/theme';
 import { GOOGLE_API_KEY, RADIUS } from '@env';
 import { Formik } from 'formik';
 import dayjs from 'dayjs';
+import Icon from 'react-native-vector-icons/AntDesign';
 import backgroundImage from '../assets/images/masjid.jpg';
+import CustomMessageModal from './CustomMessageModal';
+import CustomPrayerTimeModal from './CustomPrayerTimeModal';
 
 const handleNavigateButton = marker => {
   if (marker) {
@@ -52,7 +55,22 @@ const handleNavigateButton = marker => {
   }
 };
 
+const getCustomPrayers = marker => {
+  return (
+    (marker?.prayerTimes?.customPrayers &&
+      marker?.prayerTimes?.customPrayers.map($customPrayer => ({
+        prayerName: $customPrayer.prayerName,
+        prayerTime: $customPrayer.prayerTime.toDate(),
+      }))) ||
+    []
+  );
+};
+
+const getCustomMessage = marker => marker?.customMessage || null;
 const PrayerTimeModal = ({ isPrayerTimeModalVisible, setIsPrayerTimeModalVisible, marker }) => {
+  const [isCustomPrayerTimeModalVisible, setIsCustomPrayerTimeModalVisible] = useState(false);
+  const [isCustomMessageModalVisible, setIsCustomMessageModalVisible] = useState(false);
+
   return (
     <Modal
       transparent
@@ -70,12 +88,12 @@ const PrayerTimeModal = ({ isPrayerTimeModalVisible, setIsPrayerTimeModalVisible
                 <View style={styles.title1View}>
                   <Text style={styles.title1}>Prayer Times</Text>
                   <Text style={styles.title2}>{marker?.title || marker?.name}</Text>
-                  {marker?.customMessage && (
+                  {/* {marker?.customMessage && (
                     <Text style={styles.title3}>{marker.customMessage}</Text>
-                  )}
+                  )} */}
                 </View>
                 <ScrollView style={styles.scrollView}>
-                  {marker?.prayerTimes?.customPrayers &&
+                  {/* {marker?.prayerTimes?.customPrayers &&
                     marker?.prayerTimes?.customPrayers.map(($prayer, index) => (
                       <View style={styles.customPrayerView} key={index}>
                         <View>
@@ -85,7 +103,7 @@ const PrayerTimeModal = ({ isPrayerTimeModalVisible, setIsPrayerTimeModalVisible
                           </Text>
                         </View>
                       </View>
-                    ))}
+                    ))} */}
 
                   {/* Fajar */}
 
@@ -151,16 +169,59 @@ const PrayerTimeModal = ({ isPrayerTimeModalVisible, setIsPrayerTimeModalVisible
                       </Text>
                     </View>
                   </View>
+                  {getCustomPrayers(marker).length > 0 && (
+                    <>
+                      {/* Custom Prayer Button */}
+                      <TouchableWithoutFeedback
+                        onPress={() => setIsCustomPrayerTimeModalVisible(true)}>
+                        <View style={styles.inputView}>
+                          <View>
+                            <Text style={styles.times}>custom prayer time</Text>
+                          </View>
+                          <View>
+                            <Icon name="right" size={32} color="white" />
+                          </View>
+                        </View>
+                      </TouchableWithoutFeedback>
+
+                      <CustomPrayerTimeModal
+                        mode="read"
+                        isCustomPrayerTimeModalVisible={isCustomPrayerTimeModalVisible}
+                        setIsCustomPrayerTimeModalVisible={setIsCustomPrayerTimeModalVisible}
+                        customPrayers={getCustomPrayers(marker)}
+                      />
+                    </>
+                  )}
+                  {getCustomMessage(marker) && (
+                    // {/* Custom Message Button */}
+                    <>
+                      <TouchableWithoutFeedback
+                        onPress={() => setIsCustomMessageModalVisible(true)}>
+                        <View style={styles.inputView}>
+                          <View>
+                            <Text style={styles.times}>custom message</Text>
+                          </View>
+                          <View>
+                            <Icon name="right" size={32} color="white" />
+                          </View>
+                        </View>
+                      </TouchableWithoutFeedback>
+
+                      <CustomMessageModal
+                        mode="read"
+                        isCustomMessageModalVisible={isCustomMessageModalVisible}
+                        setIsCustomMessageModalVisible={setIsCustomMessageModalVisible}
+                        customMessage={getCustomMessage(marker)}
+                        // setCustomMessage={setCustomMessage}
+                      />
+                    </>
+                  )}
                 </ScrollView>
 
                 {/* Navigate Button */}
                 <TouchableWithoutFeedback onPress={() => handleNavigateButton(marker)}>
                   <View style={styles.updateButtonView}>
-                    {false ? (
-                      <ActivityIndicator />
-                    ) : (
-                      <Text style={styles.updateButtonText}>Navigate To Masjid</Text>
-                    )}
+                    <Text style={styles.updateButtonText}>Navigate To Masjid</Text>
                   </View>
                 </TouchableWithoutFeedback>
               </View>
@@ -211,7 +272,7 @@ const styles = StyleSheet.create({
     // backgroundColor: 'orange',
     width: Dimensions.get('screen').width - 60,
 
-    maxHeight: Dimensions.get('screen').height - 450,
+    maxHeight: Dimensions.get('screen').height - 370,
     contentContainer: {
       paddingVertical: 20,
     },

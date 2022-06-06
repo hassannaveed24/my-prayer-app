@@ -18,8 +18,8 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import dayjs from 'dayjs';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { authentication, database } from '../../database/firebaseDB';
-import CustomPrayerTimeModal from './CustomPrayerTimeModal';
-import CustomMessageModal from './CustomMessageModal';
+import CustomPrayerTimeModal from '../../components/CustomPrayerTimeModal';
+import CustomMessageModal from '../../components/CustomMessageModal';
 
 const mutationFn = payload => {
   if (

@@ -10,10 +10,12 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import theme from '../../constants/theme';
-import backgroundImage from '../../assets/images/masjid.jpg';
+
+import backgroundImage from '../assets/images/masjid.jpg';
+import theme from '../constants/theme';
 
 const CustomMessageModal = ({
+  mode,
   isCustomMessageModalVisible,
   setIsCustomMessageModalVisible,
   customMessage,
@@ -34,12 +36,15 @@ const CustomMessageModal = ({
               <View style={styles.modalContainer}>
                 {/* Title */}
                 <View style={styles.title1View}>
-                  <Text style={styles.title1}>set custom message</Text>
+                  <Text style={styles.title1}>
+                    {mode === 'read' ? 'custom message' : 'set custom message'}
+                  </Text>
                   {/* <Text style={styles.title2}>{marker?.title || marker?.name}</Text> */}
                 </View>
                 <View style={styles.inputView}>
                   {/* <View style={styles.prayerNameAndTimeView}> */}
                   <TextInput
+                    editable={mode !== 'read'}
                     style={styles.textInput}
                     autoCapitalize="characters"
                     maxLength={100}
@@ -57,14 +62,16 @@ const CustomMessageModal = ({
                 </View>
 
                 {/* Navigate Button */}
-                <TouchableWithoutFeedback
-                  onPress={() => {
-                    setIsCustomMessageModalVisible(false);
-                  }}>
-                  <View style={styles.buttonView}>
-                    <Text style={styles.buttonText}>update</Text>
-                  </View>
-                </TouchableWithoutFeedback>
+                {mode !== 'read' && (
+                  <TouchableWithoutFeedback
+                    onPress={() => {
+                      setIsCustomMessageModalVisible(false);
+                    }}>
+                    <View style={styles.buttonView}>
+                      <Text style={styles.buttonText}>update</Text>
+                    </View>
+                  </TouchableWithoutFeedback>
+                )}
               </View>
             </ImageBackground>
           </>

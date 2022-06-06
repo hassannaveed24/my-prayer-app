@@ -16,10 +16,12 @@ import Icon from 'react-native-vector-icons/AntDesign';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import dayjs from 'dayjs';
 import clonedeep from 'lodash.clonedeep';
-import theme from '../../constants/theme';
-import backgroundImage from '../../assets/images/masjid.jpg';
+
+import backgroundImage from '../assets/images/masjid.jpg';
+import theme from '../constants/theme';
 
 const CustomPrayerTimeModal = ({
+  mode,
   isCustomPrayerTimeModalVisible,
   setIsCustomPrayerTimeModalVisible,
   customPrayers,
@@ -42,7 +44,9 @@ const CustomPrayerTimeModal = ({
               <View style={styles.modalContainer}>
                 {/* Title */}
                 <View style={styles.title1View}>
-                  <Text style={styles.title1}>set custom prayer times</Text>
+                  <Text style={styles.title1}>
+                    {mode === 'read' ? 'set custom prayer times' : 'custom prayer times'}
+                  </Text>
                   {/* <Text style={styles.title2}>{marker?.title || marker?.name}</Text> */}
                 </View>
                 <ScrollView
@@ -53,6 +57,7 @@ const CustomPrayerTimeModal = ({
                       <View style={styles.inputView}>
                         <View style={styles.prayerNameAndTimeView}>
                           <TextInput
+                            editable={mode !== 'read'}
                             style={styles.textInput}
                             autoCapitalize="characters"
                             placeholderTextColor={theme.placeholder}
@@ -70,8 +75,10 @@ const CustomPrayerTimeModal = ({
                           />
                           <TouchableWithoutFeedback
                             onPress={() => {
-                              setTimePickerModalData({ prayer: $customPrayer, index });
-                              setIsDatePickerModalVisible(true);
+                              if (mode !== 'read') {
+                                setTimePickerModalData({ prayer: $customPrayer, index });
+                                setIsDatePickerModalVisible(true);
+                              }
                             }}>
                             <View style={styles.setPrayerTimeView}>
                               <Text style={styles.times}>
@@ -79,73 +86,82 @@ const CustomPrayerTimeModal = ({
                                   ? dayjs($customPrayer.prayerTime).format('hh:mm A')
                                   : `?`}
                               </Text>
-                              <View>
-                                <Icon name="edit" size={32} color="white" />
-                              </View>
+                              {mode !== 'read' && (
+                                <View>
+                                  <Icon name="edit" size={32} color="white" />
+                                </View>
+                              )}
                             </View>
                           </TouchableWithoutFeedback>
                         </View>
-                        <TouchableWithoutFeedback
-                          onPress={() => {
-                            const newCustomPrayers = clonedeep(customPrayers);
-                            newCustomPrayers.splice(index, 1);
-                            setCustomPrayers(newCustomPrayers);
-                          }}>
-                          <View style={styles.minusIconView}>
-                            <Icon name="minus" size={32} color={theme.danger} />
-                          </View>
-                        </TouchableWithoutFeedback>
+                        {mode !== 'read' && (
+                          <TouchableWithoutFeedback
+                            onPress={() => {
+                              const newCustomPrayers = clonedeep(customPrayers);
+                              newCustomPrayers.splice(index, 1);
+                              setCustomPrayers(newCustomPrayers);
+                            }}>
+                            <View style={styles.minusIconView}>
+                              <Icon name="minus" size={32} color={theme.danger} />
+                            </View>
+                          </TouchableWithoutFeedback>
+                        )}
                       </View>
                     </React.Fragment>
                   ))}
-                  <DateTimePickerModal
-                    isVisible={isDatePickerModalVisible}
-                    mode="time"
-                    date={timePickerModalData.prayer?.prayerTime || new Date()}
-                    onConfirm={date => {
-                      const newCustomPrayers = clonedeep(customPrayers);
-                      newCustomPrayers[timePickerModalData.index].prayerTime = date;
-                      setCustomPrayers(newCustomPrayers);
-                      setTimePickerModalData({});
-                      setIsDatePickerModalVisible(false);
-                    }}
-                    onCancel={() => {
-                      setTimePickerModalData({});
-                      setIsDatePickerModalVisible(false);
-                    }}
-                  />
-                  {/* add new prayer time */}
+                  {mode !== 'read' &&
+                    ((
+                      <DateTimePickerModal
+                        isVisible={isDatePickerModalVisible}
+                        mode="time"
+                        date={timePickerModalData.prayer?.prayerTime || new Date()}
+                        onConfirm={date => {
+                          const newCustomPrayers = clonedeep(customPrayers);
+                          newCustomPrayers[timePickerModalData.index].prayerTime = date;
+                          setCustomPrayers(newCustomPrayers);
+                          setTimePickerModalData({});
+                          setIsDatePickerModalVisible(false);
+                        }}
+                        onCancel={() => {
+                          setTimePickerModalData({});
+                          setIsDatePickerModalVisible(false);
+                        }}
+                      />
+                    ),
+                    (
+                      <TouchableWithoutFeedback
+                        onPress={() =>
+                          setCustomPrayers(prev => [
+                            ...prev,
+                            { prayerName: '', prayerTime: new Date() },
+                          ])
+                        }>
+                        <View style={styles.addNewPrayerView}>
+                          <View>
+                            <Text style={styles.times}>add new prayer time</Text>
+                          </View>
+                          <View>
+                            <Icon name="plus" size={32} color="white" />
+                          </View>
+                        </View>
+                      </TouchableWithoutFeedback>
+                    ))}
+                </ScrollView>
+                {mode !== 'read' && (
+                  // {/* Navigate Button */}
                   <TouchableWithoutFeedback
-                    onPress={() =>
-                      setCustomPrayers(prev => [
-                        ...prev,
-                        { prayerName: '', prayerTime: new Date() },
-                      ])
-                    }>
-                    <View style={styles.addNewPrayerView}>
-                      <View>
-                        <Text style={styles.times}>add new prayer time</Text>
-                      </View>
-                      <View>
-                        <Icon name="plus" size={32} color="white" />
-                      </View>
+                    onPress={() => {
+                      if (customPrayers.filter(p => p.prayerName === '').length > 0) {
+                        ToastAndroid.show(`Prayer name can't be empty!`, ToastAndroid.LONG);
+                      } else {
+                        setIsCustomPrayerTimeModalVisible(false);
+                      }
+                    }}>
+                    <View style={styles.buttonView}>
+                      <Text style={styles.buttonText}>update</Text>
                     </View>
                   </TouchableWithoutFeedback>
-                </ScrollView>
-
-                {/* Navigate Button */}
-                <TouchableWithoutFeedback
-                  onPress={() => {
-                    if (customPrayers.filter(p => p.prayerName === '').length > 0) {
-                      ToastAndroid.show(`Prayer name can't be empty!`, ToastAndroid.LONG);
-                    } else {
-                      setIsCustomPrayerTimeModalVisible(false);
-                    }
-                  }}>
-                  <View style={styles.buttonView}>
-                    <Text style={styles.buttonText}>update</Text>
-                  </View>
-                </TouchableWithoutFeedback>
+                )}
               </View>
             </ImageBackground>
           </>
