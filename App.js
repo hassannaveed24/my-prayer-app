@@ -8,8 +8,6 @@ import UserNavigation from './components/navigation/UserNavigation';
 
 const queryClient = new QueryClient();
 
-const Drawer = createDrawerNavigator();
-
 export default function App() {
   const [user, setUser] = useState(null);
   useEffect(() => {

@@ -1,5 +1,6 @@
 export default {
   background: 'rgba(0,128,0,0.5)',
+  backgroundDarker: 'rgba(0,128,0,0.2)',
   scrollViewBackground: 'rgba(52,52,52,0.5)',
   title: '#fff',
   placeholder: '#C7C7CD',

@@ -13,6 +13,7 @@ import {
   Dimensions,
   ImageBackground,
   TouchableWithoutFeedback,
+  ScrollView,
 } from 'react-native';
 import * as Location from 'expo-location';
 import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
@@ -69,72 +70,88 @@ const PrayerTimeModal = ({ isPrayerTimeModalVisible, setIsPrayerTimeModalVisible
                 <View style={styles.title1View}>
                   <Text style={styles.title1}>Prayer Times</Text>
                   <Text style={styles.title2}>{marker?.title || marker?.name}</Text>
+                  {marker?.customMessage && (
+                    <Text style={styles.title3}>{marker.customMessage}</Text>
+                  )}
                 </View>
+                <ScrollView style={styles.scrollView}>
+                  {marker?.prayerTimes?.customPrayers &&
+                    marker?.prayerTimes?.customPrayers.map(($prayer, index) => (
+                      <View style={styles.customPrayerView} key={index}>
+                        <View>
+                          <Text style={styles.times}>
+                            {$prayer.prayerName + ': '}
+                            {dayjs($prayer?.prayerTime.toDate()).format('hh:mm A')}
+                          </Text>
+                        </View>
+                      </View>
+                    ))}
 
-                {/* Fajar */}
+                  {/* Fajar */}
 
-                <View style={styles.inputView}>
-                  <View>
-                    <Text style={styles.times}>
-                      Fajar:{' '}
-                      {marker?.prayerTimes?.fajar
-                        ? dayjs(marker?.prayerTimes?.fajar.toDate()).format('hh:mm A')
-                        : `?`}
-                    </Text>
+                  <View style={styles.inputView}>
+                    <View>
+                      <Text style={styles.times}>
+                        Fajar:{' '}
+                        {marker?.prayerTimes?.fajar
+                          ? dayjs(marker?.prayerTimes?.fajar.toDate()).format('hh:mm A')
+                          : `?`}
+                      </Text>
+                    </View>
                   </View>
-                </View>
 
-                {/* DUHAR */}
+                  {/* DUHAR */}
 
-                <View style={styles.inputView}>
-                  <View>
-                    <Text style={styles.times}>
-                      DUHAR:{' '}
-                      {marker?.prayerTimes?.duhar
-                        ? dayjs(marker?.prayerTimes?.duhar.toDate()).format('hh:mm A')
-                        : `?`}
-                    </Text>
+                  <View style={styles.inputView}>
+                    <View>
+                      <Text style={styles.times}>
+                        DUHAR:{' '}
+                        {marker?.prayerTimes?.duhar
+                          ? dayjs(marker?.prayerTimes?.duhar.toDate()).format('hh:mm A')
+                          : `?`}
+                      </Text>
+                    </View>
                   </View>
-                </View>
 
-                {/* ASAR */}
+                  {/* ASAR */}
 
-                <View style={styles.inputView}>
-                  <View>
-                    <Text style={styles.times}>
-                      ASAR:{' '}
-                      {marker?.prayerTimes?.asar
-                        ? dayjs(marker?.prayerTimes?.asar.toDate()).format('hh:mm A')
-                        : `?`}
-                    </Text>
+                  <View style={styles.inputView}>
+                    <View>
+                      <Text style={styles.times}>
+                        ASAR:{' '}
+                        {marker?.prayerTimes?.asar
+                          ? dayjs(marker?.prayerTimes?.asar.toDate()).format('hh:mm A')
+                          : `?`}
+                      </Text>
+                    </View>
                   </View>
-                </View>
 
-                {/* MAGRIB */}
+                  {/* MAGRIB */}
 
-                <View style={styles.inputView}>
-                  <View>
-                    <Text style={styles.times}>
-                      MAGRIB:{' '}
-                      {marker?.prayerTimes?.maghrib
-                        ? dayjs(marker.prayerTimes.maghrib.toDate()).format('hh:mm A')
-                        : `?`}
-                    </Text>
+                  <View style={styles.inputView}>
+                    <View>
+                      <Text style={styles.times}>
+                        MAGRIB:{' '}
+                        {marker?.prayerTimes?.maghrib
+                          ? dayjs(marker.prayerTimes.maghrib.toDate()).format('hh:mm A')
+                          : `?`}
+                      </Text>
+                    </View>
                   </View>
-                </View>
 
-                {/* ISHA */}
+                  {/* ISHA */}
 
-                <View style={styles.inputView}>
-                  <View>
-                    <Text style={styles.times}>
-                      ISHA:{' '}
-                      {marker?.prayerTimes?.isha
-                        ? dayjs(marker.prayerTimes.isha.toDate()).format('hh:mm A')
-                        : `?`}
-                    </Text>
+                  <View style={styles.inputView}>
+                    <View>
+                      <Text style={styles.times}>
+                        ISHA:{' '}
+                        {marker?.prayerTimes?.isha
+                          ? dayjs(marker.prayerTimes.isha.toDate()).format('hh:mm A')
+                          : `?`}
+                      </Text>
+                    </View>
                   </View>
-                </View>
+                </ScrollView>
 
                 {/* Navigate Button */}
                 <TouchableWithoutFeedback onPress={() => handleNavigateButton(marker)}>
@@ -189,12 +206,23 @@ const styles = StyleSheet.create({
     paddingTop: 30,
     // backgroundColor: 'white',
   },
+  scrollView: {
+    backgroundColor: theme.scrollViewBackground,
+    // backgroundColor: 'orange',
+    width: Dimensions.get('screen').width - 60,
+
+    maxHeight: Dimensions.get('screen').height - 450,
+    contentContainer: {
+      paddingVertical: 20,
+    },
+  },
   title1View: {
     // backgroundColor: 'orange',
-    flex: 1,
+    // flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    maxHeight: 40,
+    minHeight: 70,
+    maxHeight: 140,
     marginBottom: 20,
   },
   title1: {
@@ -203,12 +231,29 @@ const styles = StyleSheet.create({
     color: theme.title,
     textTransform: 'uppercase',
   },
-  inputView: {
-    backgroundColor: theme.background,
+  customPrayerView: {
+    backgroundColor: theme.backgroundDarker,
+    width: Dimensions.get('screen').width - 60,
 
     height: 56,
     maxHeight: 56,
-    width: '100%',
+    marginBottom: 20,
+    // borderStyle: 'solid',
+    // borderWidth: 1,
+    // borderColor: theme.border,
+    borderRadius: theme.borderRadius,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
+  },
+  inputView: {
+    backgroundColor: theme.background,
+    width: Dimensions.get('screen').width - 60,
+
+    height: 56,
+    maxHeight: 56,
     marginBottom: 20,
     // borderStyle: 'solid',
     // borderWidth: 1,
@@ -233,6 +278,14 @@ const styles = StyleSheet.create({
     fontWeight: '300',
     color: theme.title,
     textTransform: 'uppercase',
+  },
+  title3: {
+    fontSize: 14,
+    fontWeight: '200',
+    color: theme.title,
+    textTransform: 'uppercase',
+    padding: 15,
+    textAlign: 'center',
   },
   updateButtonView: {
     maxHeight: 40,

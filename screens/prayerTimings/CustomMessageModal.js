@@ -42,6 +42,7 @@ const CustomMessageModal = ({
                   <TextInput
                     style={styles.textInput}
                     autoCapitalize="characters"
+                    maxLength={100}
                     placeholderTextColor={theme.placeholder}
                     placeholder="Custom Message"
                     keyboardType="default"
@@ -115,7 +116,7 @@ const styles = StyleSheet.create({
   inputView: {
     backgroundColor: theme.background,
     height: 56,
-    maxHeight: 400,
+    maxHeight: 200,
     // width: '100%',
     width: Dimensions.get('screen').width - 60,
     marginBottom: 20,

@@ -208,6 +208,7 @@ export const transformMasjids = $masjids => {
       maghrib: null,
       isha: null,
     };
+    const customMessage = $masjid?.customMessage || null;
 
     return {
       coordinate: { latitude, longitude },
@@ -215,6 +216,7 @@ export const transformMasjids = $masjids => {
       image,
       place_id,
       prayerTimes,
+      customMessage,
     };
   });
 };

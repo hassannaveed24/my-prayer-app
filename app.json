@@ -24,7 +24,7 @@
       },
       "package": "com.prayer.app",
       "config": {
-        "googleMaps": { "apiKey": "AIzaSyCyAghJnF-C_BMqaSVE18BIG-NBsEhBjRg" }
+        "googleMaps": { "apiKey": "AIzaSyCfo6j992M7e4DZDMfn8PSwxmEhk8-Z5Fk" }
       }
     },
     "web": {
