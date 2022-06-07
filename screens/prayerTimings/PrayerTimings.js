@@ -319,6 +319,7 @@ const PrayerTimings = () => {
                   </View>
                 </TouchableWithoutFeedback>
                 <CustomPrayerTimeModal
+                  mode="edit"
                   isCustomPrayerTimeModalVisible={isCustomPrayerTimeModalVisible}
                   setIsCustomPrayerTimeModalVisible={setIsCustomPrayerTimeModalVisible}
                   customPrayers={customPrayers}

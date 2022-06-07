@@ -109,8 +109,8 @@ const CustomPrayerTimeModal = ({
                       </View>
                     </React.Fragment>
                   ))}
-                  {mode !== 'read' &&
-                    ((
+                  {mode !== 'read' && (
+                    <>
                       <DateTimePickerModal
                         isVisible={isDatePickerModalVisible}
                         mode="time"
@@ -127,8 +127,7 @@ const CustomPrayerTimeModal = ({
                           setIsDatePickerModalVisible(false);
                         }}
                       />
-                    ),
-                    (
+
                       <TouchableWithoutFeedback
                         onPress={() =>
                           setCustomPrayers(prev => [
@@ -145,7 +144,8 @@ const CustomPrayerTimeModal = ({
                           </View>
                         </View>
                       </TouchableWithoutFeedback>
-                    ))}
+                    </>
+                  )}
                 </ScrollView>
                 {mode !== 'read' && (
                   // {/* Navigate Button */}
