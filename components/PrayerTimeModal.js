@@ -71,6 +71,9 @@ const PrayerTimeModal = ({ isPrayerTimeModalVisible, setIsPrayerTimeModalVisible
   const [isCustomPrayerTimeModalVisible, setIsCustomPrayerTimeModalVisible] = useState(false);
   const [isCustomMessageModalVisible, setIsCustomMessageModalVisible] = useState(false);
 
+  const [isCustomPrayerButtonActive, setIsCustomPrayerButtonActive] = useState(false);
+  const [isCustomMessageButtonActive, setIsCustomMessageButtonActive] = useState(false);
+
   return (
     <Modal
       transparent
@@ -93,18 +96,6 @@ const PrayerTimeModal = ({ isPrayerTimeModalVisible, setIsPrayerTimeModalVisible
                   )} */}
                 </View>
                 <ScrollView style={styles.scrollView}>
-                  {/* {marker?.prayerTimes?.customPrayers &&
-                    marker?.prayerTimes?.customPrayers.map(($prayer, index) => (
-                      <View style={styles.customPrayerView} key={index}>
-                        <View>
-                          <Text style={styles.times}>
-                            {$prayer.prayerName + ': '}
-                            {dayjs($prayer?.prayerTime.toDate()).format('hh:mm A')}
-                          </Text>
-                        </View>
-                      </View>
-                    ))} */}
-
                   {/* Fajar */}
 
                   <View style={styles.inputView}>
@@ -173,47 +164,81 @@ const PrayerTimeModal = ({ isPrayerTimeModalVisible, setIsPrayerTimeModalVisible
                     <>
                       {/* Custom Prayer Button */}
                       <TouchableWithoutFeedback
-                        onPress={() => setIsCustomPrayerTimeModalVisible(true)}>
+                        onPress={() => {
+                          setIsCustomPrayerButtonActive(!isCustomPrayerButtonActive);
+                          // setIsCustomPrayerTimeModalVisible(true);
+                        }}>
                         <View style={styles.inputView}>
                           <View>
                             <Text style={styles.times}>custom prayer time</Text>
                           </View>
                           <View>
-                            <Icon name="right" size={32} color="white" />
+                            <Icon
+                              name={isCustomPrayerButtonActive ? 'down' : 'right'}
+                              size={32}
+                              color="white"
+                            />
                           </View>
                         </View>
                       </TouchableWithoutFeedback>
 
-                      <CustomPrayerTimeModal
+                      {isCustomPrayerButtonActive &&
+                        marker?.prayerTimes?.customPrayers &&
+                        marker?.prayerTimes?.customPrayers.map(($prayer, index) => (
+                          <View style={styles.customPrayerView} key={index}>
+                            <View>
+                              <Text style={styles.times}>
+                                {$prayer.prayerName + ': '}
+                                {dayjs($prayer?.prayerTime.toDate()).format('hh:mm A')}
+                              </Text>
+                            </View>
+                          </View>
+                        ))}
+
+                      {/* <CustomPrayerTimeModal
                         mode="read"
                         isCustomPrayerTimeModalVisible={isCustomPrayerTimeModalVisible}
                         setIsCustomPrayerTimeModalVisible={setIsCustomPrayerTimeModalVisible}
                         customPrayers={getCustomPrayers(marker)}
-                      />
+                      /> */}
                     </>
                   )}
                   {getCustomMessage(marker) && (
-                    // {/* Custom Message Button */}
                     <>
+                      {/* Custom Message Button */}
                       <TouchableWithoutFeedback
-                        onPress={() => setIsCustomMessageModalVisible(true)}>
+                        onPress={() => {
+                          setIsCustomMessageButtonActive(!isCustomMessageButtonActive);
+                        }}>
                         <View style={styles.inputView}>
                           <View>
                             <Text style={styles.times}>custom message</Text>
                           </View>
                           <View>
-                            <Icon name="right" size={32} color="white" />
+                            <Icon
+                              name={isCustomMessageButtonActive ? 'down' : 'right'}
+                              size={32}
+                              color="white"
+                            />
                           </View>
                         </View>
                       </TouchableWithoutFeedback>
 
-                      <CustomMessageModal
+                      {isCustomMessageButtonActive && (
+                        <View style={styles.customMessageView}>
+                          <View>
+                            <Text style={styles.times}>{getCustomMessage(marker)}</Text>
+                          </View>
+                        </View>
+                      )}
+
+                      {/* <CustomMessageModal
                         mode="read"
                         isCustomMessageModalVisible={isCustomMessageModalVisible}
                         setIsCustomMessageModalVisible={setIsCustomMessageModalVisible}
                         customMessage={getCustomMessage(marker)}
                         // setCustomMessage={setCustomMessage}
-                      />
+                      /> */}
                     </>
                   )}
                 </ScrollView>
@@ -298,6 +323,23 @@ const styles = StyleSheet.create({
 
     height: 56,
     maxHeight: 56,
+    marginBottom: 20,
+    // borderStyle: 'solid',
+    // borderWidth: 1,
+    // borderColor: theme.border,
+    borderRadius: theme.borderRadius,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
+  },
+  customMessageView: {
+    backgroundColor: theme.backgroundDarker,
+    width: Dimensions.get('screen').width - 60,
+
+    minHeight: 56,
+    maxHeight: 300,
     marginBottom: 20,
     // borderStyle: 'solid',
     // borderWidth: 1,

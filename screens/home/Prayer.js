@@ -71,8 +71,8 @@ export default function Prayer({ navigation }) {
 
   async function setTimings(date) {
     setIsLoading(true);
-    const prayertimes = await getPrayerTimings(date, location);
-    setPrayerTimes(prayertimes);
+    const prayerTimes = await getPrayerTimings(date, location);
+    setPrayerTimes(prayerTimes);
     setIsLoading(false);
 
     // console.log(prayertimes);

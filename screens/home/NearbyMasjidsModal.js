@@ -10,17 +10,13 @@ import {
   TouchableWithoutFeedback,
   Dimensions,
 } from 'react-native';
-import * as Location from 'expo-location';
-import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 import axios from 'axios';
-import { useMutation, useQuery } from 'react-query';
-import _, { truncate } from 'lodash';
+import { useQuery } from 'react-query';
+import _ from 'lodash';
 import theme from '../../constants/theme';
 import { GOOGLE_API_KEY, RADIUS } from '@env';
-import { Formik } from 'formik';
-import { collection, documentId, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { database } from '../../database/firebaseDB';
-import dayjs from 'dayjs';
 import ScreenWrapper from '../../components/screenWrapper/ScreenWrapper';
 import PrayerTimeModal from '../../components/PrayerTimeModal';
 import {
@@ -58,7 +54,7 @@ const queryFn = async () => {
       const queriedMasjids = $xhr.data.results;
 
       // quried - excluded
-      const differenceOfQueriedandExcludedMasjids = queriedMasjids.filter(queriedMasjid => {
+      const differenceOfQueriedAndExcludedMasjids = queriedMasjids.filter(queriedMasjid => {
         return (
           excludedMasjids.findIndex(
             excludedMasjid => excludedMasjid.place_id === queriedMasjid.place_id,
@@ -68,7 +64,7 @@ const queryFn = async () => {
 
       const finalArray = intersectionOfTwoArrays(
         queriedMasjids,
-        differenceOfQueriedandExcludedMasjids,
+        differenceOfQueriedAndExcludedMasjids,
       );
 
       finalArray.forEach(($finalMasjid, index) => {
